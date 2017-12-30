@@ -1,20 +1,3 @@
-#CXXFLAGS =	-O2 -g -Wall -fmessage-length=0
-#
-#OBJS =		TIN_p2p.o
-#
-#LIBS =
-#
-#TARGET =	TIN_p2p
-#
-#$(TARGET):	$(OBJS)
-#	$(CXX) -o $(TARGET) $(OBJS) $(LIBS)
-#
-#all:	$(TARGET)
-#
-#clean:
-#	rm -f $(OBJS) $(TARGET)
-
-
 # Compiler
 CC     = g++
 
