@@ -30,3 +30,12 @@
 *.exe
 *.out
 *.app
+
+# Eclipse specific files
+.cproject
+.project
+.settings/
+
+# Debug/Release directories
+release/
+debug/
