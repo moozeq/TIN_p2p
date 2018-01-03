@@ -21,9 +21,20 @@ void NetMainThread::execute(void)
 	while(1)
 	{
 		UdpPacket p = udpSocket.getPacket();
-		Command * c = newCommand(&p);
-		pthread_t workerThread;
-		pthread_create(&workerThread, NULL, Command::commandExeWrapper, static_cast<void *>(c));
+		Command * command = newCommand(&p);
+		if(command != nullptr)
+		{
+			if(command->reqSeparateThread())
+			{
+				pthread_t thread;
+				pthread_create(&thread, NULL, Command::commandExeWrapper, static_cast<void *>(command));
+			}
+			else
+			{
+				command->execute();
+				delete command;
+			}
+		}
 	}
 }
 
