@@ -1,10 +1,3 @@
-/*
- * NetMainThread.h
- *
- *  Created on: Jan 3, 2018
- *      Author: piotr
- */
-
 #ifndef SRC_NETMAINTHREAD_H_
 #define SRC_NETMAINTHREAD_H_
 

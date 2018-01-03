@@ -23,7 +23,7 @@ void NetMainThread::execute(void)
 		UdpPacket p = udpSocket.getPacket();
 		Command * c = newCommand(&p);
 		pthread_t workerThread;
-		pthread_create(&workerThread, NULL, &commandExeWrapper, static_cast<void *>(c));
+		pthread_create(&workerThread, NULL, Command::commandExeWrapper, static_cast<void *>(c));
 	}
 }
 

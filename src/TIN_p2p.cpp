@@ -5,7 +5,6 @@
 #include "AddNode.h"
 #include <iostream>
 #include <pthread.h>
-#include "common.h"
 
 NodeInfo nodeInfo;
 
@@ -24,7 +23,6 @@ Command * newTerminalCommand(std::string textCommand)
 }
 
 
-
 int main(void)
 {
 	std::string userCommand;
@@ -35,15 +33,18 @@ int main(void)
 		std::cin >> userCommand;
 		std::cout<<"Wpisano: "<<userCommand<<std::endl;
 		Command * command = newTerminalCommand(userCommand);
-		if(command->reqSeparateThread())
+		if(command != nullptr)
 		{
-			pthread_t thread;
-			pthread_create(&thread, NULL, commandExeWrapper, static_cast<void *>(command));
-		}
-		else
-		{
-			command->execute();
-			delete command;
+			if(command->reqSeparateThread())
+			{
+				pthread_t thread;
+				pthread_create(&thread, NULL, Command::commandExeWrapper, static_cast<void *>(command));
+			}
+			else
+			{
+				command->execute();
+				delete command;
+			}
 		}
 	}
 
