@@ -1,37 +1,50 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "NodeInfo.h"
+#include "NetMainThread.h"
+#include "AddNode.h"
+#include <iostream>
+#include <pthread.h>
+#include "common.h"
 
-#include "FileTransfer.h"
+NodeInfo nodeInfo;
 
-void * commandExeWrapper(void * command)
-{
-	Command * cmd = static_cast<Command *>(command);
-	cmd->execute();
-	delete cmd;
-	return 0;
-}
-
-Command * newCommand(Packet * p)
+Command * newTerminalCommand(std::string textCommand)
 {
 	Command * outCommand;
-	if(p->opcodeRequestType == Type::FileTransfer)
-		outCommand = new FileTransfer(p);
-	else if(...)
-		;
+	if(textCommand == "add")
+	{
+		outCommand = new AddNode();
+	}
+	else if(textCommand == "join")
+		outCommand = new NetMainThread(&nodeInfo);
 	else
-		;
+		outCommand = nullptr;
 	return outCommand;
 }
 
+
+
 int main(void)
 {
-	// Get commands from UDP
+	std::string userCommand;
+
+	// Get user commands from terminal
 	while(1)
 	{
-		Packet p = udpSocket.getPacket();
-		Command * c = newCommand(&p);
-		pthread_t workerThread;
-		pthread_create(&workerThread, NULL, &commandExeWrapper, static_cast<void *>(c));
+		std::cin >> userCommand;
+		std::cout<<"Wpisano: "<<userCommand<<std::endl;
+		Command * command = newTerminalCommand(userCommand);
+		if(command->reqSeparateThread())
+		{
+			pthread_t thread;
+			pthread_create(&thread, NULL, commandExeWrapper, static_cast<void *>(command));
+		}
+		else
+		{
+			command->execute();
+			delete command;
+		}
 	}
 
 	return 0;

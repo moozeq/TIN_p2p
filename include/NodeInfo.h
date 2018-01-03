@@ -1,28 +1,28 @@
-/*
- * node.h
- *
- *  Created on: Dec 30, 2017
- *      Author: piotr
- */
-
-#ifndef NODE_H_
-#define NODE_H_
+#ifndef NODEINFO_H_
+#define NODEINFO_H_
 
 #include <stdlib.h>
 #include <string>
 #include <map>
 #include <vector>
+#include <mutex>
 
 /**
  * 	@brief	Struct NodeInfo which describes each node
  * 	in the network (according to 2nd page of documentation).
  */
-struct NodeInfo{
+class NodeInfo{
 	size_t node_id;
 	size_t node_cnt;
 	std::map<size_t, std::string> node_map;
-	std::vector<std::pair<size_t, size_t>> node_files;
+
+	void addNewFile(size_t hash, size_t nodeId);
+	void removeFile(size_t hash);
+
+private:
+	std::map<size_t, size_t> node_files;
+	std::mutex nodeFilesMtx;
 };
 
 
-#endif /* NODE_H_ */
+#endif /* NODEINFO_H_ */
