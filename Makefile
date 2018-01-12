@@ -13,7 +13,7 @@ CFLAGS = -Wall $(INC) -std=c++11 -pthread
 #
 # Project files
 #
-SRCS = $(SRC_DIR)/TIN_p2p.cpp $(SRC_DIR)/NodeInfo.cpp $(SRC_DIR)/FileTransfer.cpp $(SRC_DIR)/AddNode.cpp $(SRC_DIR)/NetMainThread.cpp
+SRCS = $(SRC_DIR)/TIN_p2p.cpp $(SRC_DIR)/NodeInfo.cpp $(SRC_DIR)/FileTransfer.cpp $(SRC_DIR)/AddNode.cpp $(SRC_DIR)/NetMainThread.cpp $(SRC_DIR)/Request.cpp
 
 #
 # Object files
@@ -40,7 +40,7 @@ RELCFLAGS = -O3 -DNDEBUG
 .PHONY: all clean debug prep release remake
 
 # Default build
-all: prep release
+all: prep debug
 
 #
 # Debug rules
