@@ -3,12 +3,14 @@
 
 #include <stdlib.h>
 #include <string>
+#include <iostream>
 #include <map>
 #include <vector>
 #include <mutex>
 #include <cstdint>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 
 /**
  * 	@brief	Struct NodeInfo which describes each node

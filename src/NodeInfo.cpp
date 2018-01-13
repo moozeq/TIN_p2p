@@ -14,7 +14,10 @@ void NodeInfo::removeFile(size_t hash)
 }
 
 void NodeInfo::addNewNode(struct in_addr nodeIP) {
-	nodeMap.insert(std::pair<size_t,struct in_addr>(nodeCnt - 1, nodeIP));
+	nodeMap.insert(std::pair<size_t,struct in_addr>(nodeCnt, nodeIP));
+	std::cout << "Added new node:" << std::endl
+				<< "\tNode ID: " << nodeCnt << std::endl
+				<< "\tNode IP: " << inet_ntoa(getNodeIP(nodeCnt)) << std::endl;
 	++nodeCnt;
 }
 

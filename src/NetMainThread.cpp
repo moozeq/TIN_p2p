@@ -31,6 +31,21 @@ void die(std::string s)
     exit(1);
 }
 
+void setAndSendInfoMsgUDP(int s, InfoMessage * msg, struct sockaddr_in siRec) {
+	socklen_t slen = sizeof(siRec);
+
+	//socket
+	if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
+		die("socket");
+
+	int option = 1;
+	if (setsockopt(s,SOL_SOCKET,SO_REUSEADDR, &option, sizeof(option)) < 0)
+		die(strerror(errno));
+
+	if (sendto(s, msg, sizeof(*msg), 0, (struct sockaddr*) &siRec, slen) < 0)
+		die("sendto");
+}
+
 void setAndSendInfoMsgUDP(int s, InfoMessage * msg) {
 	socklen_t slen = sizeof(si);
 
@@ -108,13 +123,17 @@ void NetMainThread::receiveNetworkMessages(void) {
 	std::cout << "Net Main Thread's waiting for requests..." << std::endl;
 	InfoMessage * msg = new InfoMessage();
 	while (setAndReceiveInfoMsgUDP(s, 0, msg)) {
+		close(s);
 		switch(msg->opcode) {
 		case 100: //new node wants to join
 			msg->opcode = 102;
 			msg->firstField = nodeInfo->getNodeCnt();
 			msg->secondField = nodeInfo->getNodeId();
 			msg->thirdField = nodeInfo->getNodeCnt();
+			//struct sockaddr_in siRec;
+			//siRec = si;
 			setAndSendInfoMsgUDP(s, msg);
+			close(s);
 			break;
 		case 101:
 		case 103:
@@ -132,15 +151,12 @@ void NetMainThread::buildNetwork(void) {
 	std::cout << "Didn't receive any response, start building new P2P network..." << std::endl;
 	nodeInfo = new NodeInfo();
 	nodeInfo->addNewNode(getMyIP());
-	std::cout << "Added new node:" << std::endl
-			<< "\tNode ID: " << 0 << std::endl
-			<< "\tNode IP: " << inet_ntoa(nodeInfo->getNodeIP(0)) << std::endl;
 	std::cout << "New P2P network created" << std::endl;
 }
 
 void NetMainThread::joinNetwork(InfoMessage * msg) {
 	if (msg->opcode == 102) {
-		nodeInfo = new NodeInfo(msg->thirdField, msg->firstField); //node id, node cnt
+		nodeInfo = new NodeInfo(msg->thirdField, msg->firstField + 1); //node id, node cnt
 		nodeInfo->setNode(nodeInfo->getNodeId(), getMyIP()); //add current node
 		nodeInfo->setNode(msg->secondField, si.sin_addr); //add sender node
 	}
@@ -148,7 +164,7 @@ void NetMainThread::joinNetwork(InfoMessage * msg) {
 	socklen_t slen = sizeof(si);
 	while((recv_len = recvfrom(s, msg, sizeof(*msg), 0, (struct sockaddr *) &si, &slen)) > 0) {
 		if (msg->opcode == 102) { //msg about network (cnt, sender id, receiver id)
-			if (msg->firstField != nodeInfo->getNodeCnt() || msg->thirdField != nodeInfo->getNodeId())
+			if (msg->firstField + 1 != nodeInfo->getNodeCnt() || msg->thirdField != nodeInfo->getNodeId())
 				die("Network's corrupted");
 			else {
 				nodeInfo->setNode(msg->secondField, si.sin_addr); //add sender node
@@ -183,8 +199,8 @@ int NetMainThread::init(void)
 	close(s); //close udp socket for broadcast
 
 	//receive udp socket
-	std::cout<<"Waiting for response within " << 5 << " seconds" <<std::endl;
-	if (setAndReceiveInfoMsgUDP(s, 5, msg) < 0)
+	std::cout<<"Waiting for response within " << 10 << " seconds" <<std::endl;
+	if (setAndReceiveInfoMsgUDP(s, 10, msg) < 0)
 		buildNetwork();
 	else
 		joinNetwork(msg);
