@@ -1,7 +1,7 @@
 #include "InfoMessage.h"
 
-InfoMessage::InfoMessage(unsigned opcode) {
-	this->opcode = opcode;
+InfoMessage::InfoMessage(size_t _opcode) {
+	opcode = _opcode;
 	firstField = 0;
 	secondField = 0;
 	thirdField = 0;

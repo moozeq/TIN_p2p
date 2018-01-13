@@ -19,6 +19,8 @@ public:
 	bool reqSeparateThread(void) {return true;}
 	int init(void);
 	void buildNetwork(void);
+	void receiveNetworkMessages(void);
+	void parseMsg(InfoMessage * msg);
 	void joinNetwork(InfoMessage * req);
 
 };
