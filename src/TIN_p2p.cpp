@@ -6,17 +6,18 @@
 #include <iostream>
 #include <pthread.h>
 
-NodeInfo nodeInfo;
+int joined = 0;
 
 Command * newTerminalCommand(std::string textCommand)
 {
 	Command * outCommand;
-	if(textCommand == "add")
-	{
+	if(textCommand == "add") {
 		outCommand = new AddNode();
 	}
 	else if(textCommand == "join")
-		outCommand = new NetMainThread(&nodeInfo);
+		outCommand = new NetMainThread();
+	else if (textCommand == "exit")
+		exit(0);
 	else
 		outCommand = nullptr;
 	return outCommand;
@@ -30,14 +31,23 @@ int main(void)
 	// Get user commands from terminal
 	while(1)
 	{
+		std::cout << "Enter command (join, exit):\n> ";
 		std::cin >> userCommand;
-		std::cout<<"Wpisano: "<<userCommand<<std::endl;
 		Command * command = newTerminalCommand(userCommand);
 		if(command != nullptr)
 		{
 			if(command->reqSeparateThread())
 			{
 				pthread_t thread;
+				if (userCommand == "join" && !joined) {
+					pthread_create(&thread, NULL, Command::commandExeWrapper, static_cast<void *>(command));
+					pthread_join(thread, NULL);
+					++joined;
+					continue;
+				} else if (userCommand == "join" && joined) {
+					std::cout << "You've already joined in P2P network" << std::endl;
+					continue;
+				}
 				pthread_create(&thread, NULL, Command::commandExeWrapper, static_cast<void *>(command));
 			}
 			else

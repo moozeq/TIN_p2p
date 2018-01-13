@@ -4,32 +4,23 @@
 #include "Command.h"
 #include "FileTransfer.h"
 #include "NodeInfo.h"
+#include "InfoMessage.h"
 #include <string>
-
-// Dummy class - pretend udp packet
-struct UdpPacket{
-	std::string task;
-};
-
-// Dummy class - pretend udp socket
-struct UdpSocket{
-	UdpPacket * udpPacket;
-	UdpPacket getPacket(void){	return *udpPacket;}
-};
 
 class NetMainThread: public Command
 {
 public:
-	NetMainThread() : nodeInfo(nullptr) {}
-	NetMainThread(NodeInfo * _nodeInfo) : nodeInfo(_nodeInfo) {}
+	static NodeInfo * nodeInfo;
+	NetMainThread() {}
 	virtual ~NetMainThread() {}
 
-	Command * newCommand(UdpPacket * p);
+	Command * newCommand();
 	void execute(void);
 	bool reqSeparateThread(void) {return true;}
+	int init(void);
+	void buildNetwork(void);
+	void joinNetwork(InfoMessage * req);
 
-private:
-	NodeInfo * nodeInfo;
 };
 
 #endif /* SRC_NETMAINTHREAD_H_ */
