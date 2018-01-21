@@ -18,8 +18,8 @@
  */
 class NodeInfo{
 public:
-	void addNewFile(size_t hash, size_t nodeId);
-	void removeFile(size_t hash);
+	void addNewFile(std::string hash, std::string& file, size_t nodeId);
+	void removeFile(std::string hash);
 	void addNewNode(struct in_addr nodeIP);
 	void removeNode(size_t nodeId);
 	struct in_addr getNodeIP(size_t nodeId);

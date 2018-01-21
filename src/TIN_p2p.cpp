@@ -1,9 +1,10 @@
+#include <AddFile.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "NodeInfo.h"
 #include "NetMainThread.h"
-#include "AddNode.h"
 #include <iostream>
+#include <string>
 #include <pthread.h>
 
 int joined = 0;
@@ -12,8 +13,9 @@ pthread_t netMainThread;
 Command * newTerminalCommand(std::string textCommand)
 {
 	Command * outCommand;
-	if(textCommand == "add") {
-		outCommand = new AddNode();
+	std::string first = textCommand.substr(0, textCommand.find(" "));
+	if(first == "add") {
+		outCommand = new AddFile(textCommand);
 	}
 	else if(textCommand == "join")
 		outCommand = new NetMainThread();
@@ -32,8 +34,8 @@ int main(void)
 	// Get user commands from terminal
 	while(1)
 	{
-		std::cout << "Enter command (join, exit):\n> ";
-		std::cin >> userCommand;
+		std::cout << "Enter command (join, add, exit):\n> ";
+		getline(std::cin, userCommand);
 		Command * command = newTerminalCommand(userCommand);
 		if(command != nullptr)
 		{
@@ -47,9 +49,10 @@ int main(void)
 				} else if (userCommand == "join" && joined) {
 					std::cout << "You've already joined in P2P network" << std::endl;
 					continue;
+				} else {
+					pthread_t thread;
+					pthread_create(&thread, NULL, Command::commandExeWrapper, static_cast<void *>(command));
 				}
-				pthread_t thread;
-				pthread_create(&thread, NULL, Command::commandExeWrapper, static_cast<void *>(command));
 			}
 			else
 			{

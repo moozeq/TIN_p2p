@@ -15,6 +15,7 @@ public:
 	virtual ~NetMainThread() {}
 
 	Command * newCommand();
+	static NodeInfo* getNodeInfo(void) {return nodeInfo; }
 	void execute(void);
 	bool reqSeparateThread(void) {return true;}
 	int init(void);
