@@ -181,6 +181,7 @@ void NetMainThread::execute(void)
 {
 	if(getNodeInfo() != nullptr && getNodeInfo()->isConnected())
 		pthread_exit(NULL);
+	NetUtils::getSelfIpAddress();
 	init();
 	receiveNetworkMessages();
 
