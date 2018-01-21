@@ -6,9 +6,6 @@
 #include <iostream>
 #include <pthread.h>
 
-int joined = 0;
-pthread_t netMainThread;
-
 Command * newTerminalCommand(std::string textCommand)
 {
 	Command * outCommand;
@@ -39,17 +36,9 @@ int main(void)
 		{
 			if(command->reqSeparateThread())
 			{
-				if (userCommand == "join" && !joined) {
-					pthread_create(&netMainThread, NULL, Command::commandExeWrapper, static_cast<void *>(command));
-					pthread_join(netMainThread, NULL);
-					++joined;
-					continue;
-				} else if (userCommand == "join" && joined) {
-					std::cout << "You've already joined in P2P network" << std::endl;
-					continue;
-				}
 				pthread_t thread;
 				pthread_create(&thread, NULL, Command::commandExeWrapper, static_cast<void *>(command));
+				pthread_detach(thread);
 			}
 			else
 			{
