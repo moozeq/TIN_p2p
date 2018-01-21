@@ -178,8 +178,10 @@ int NetMainThread::init(void)
 
 void NetMainThread::execute(void)
 {
-	if(getNodeInfo() != nullptr && getNodeInfo()->isConnected())
+	if(getNodeInfo() != nullptr && getNodeInfo()->isConnected()){
+		std::cout<<"Already connected to network!\n";
 		pthread_exit(NULL);
+	}
 	init();
 	receiveNetworkMessages();
 }

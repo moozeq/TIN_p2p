@@ -15,7 +15,6 @@ public:
 	NetMainThread() : broadcastAddress(NetUtils::getBroadcastAddress()), commonSocketFd(0) {}
 	virtual ~NetMainThread() {}
 
-	Command * newCommand();
 	static NodeInfo * getNodeInfo(void);
 	void execute(void);
 	bool reqSeparateThread(void) {return true;}

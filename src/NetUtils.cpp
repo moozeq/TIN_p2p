@@ -63,15 +63,17 @@ std::string NetUtils::getSelfIpAddress(void)
 std::string NetUtils::getSubnetAddress(void)
 {
 	std::string subnetAddress(getSelfIpAddress());
-	subnetAddress.replace(subnetAddress.find_last_of(".") + 1, 3, "0");
+	subnetAddress = subnetAddress.substr(0, subnetAddress.find_last_of(".") + 1);
+	subnetAddress.append("0");
 	return subnetAddress;
 }
 
 std::string NetUtils::getBroadcastAddress(void)
 {
-	std::string subnetAddress(getSelfIpAddress());
-	subnetAddress.replace(subnetAddress.find_last_of(".") + 1, 3, "255");
-	return subnetAddress;
+	std::string broadcastAddress(getSelfIpAddress());
+	broadcastAddress = broadcastAddress.substr(0, broadcastAddress.find_last_of(".") + 1);
+	broadcastAddress.append("255");
+	return broadcastAddress;
 }
 
 struct in_addr NetUtils::getMyIP() {
