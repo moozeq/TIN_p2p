@@ -41,9 +41,9 @@ void sendFileTCP(string hash, string* stringFile, size_t nodeId) {
 
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_port = htons(PORT);
-	//serv_addr.sin_addr = NetMainThread::getNodeInfo()->getNodeIP(nodeId);
+	serv_addr.sin_addr = NetMainThread::getNodeInfo()->getNodeIP(nodeId);
 
-	inet_pton(AF_INET, "192.168.56.102", &serv_addr.sin_addr);
+	//inet_pton(AF_INET, "192.168.56.102", &serv_addr.sin_addr);
 
 	if(connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
 		ptDie("connect");
@@ -83,7 +83,7 @@ void AddFile::execute(void)
 	NodeInfo* nodeInfo = NetMainThread::getNodeInfo();
 	if (nodeInfo != nullptr) {
 		size_t fileNodeId = calcNodeId(mdString);
-		 if (nodeInfo->getNodeId() != fileNodeId) //file in adding node
+		 if (nodeInfo->getNodeId() == fileNodeId) //file in adding node
 			 NetMainThread::getNodeInfo()->addNewFile(mdString, &fileStr, fileNodeId);
 		 else //file in different node
 			 sendFileTCP(mdString, &fileStr, fileNodeId);
