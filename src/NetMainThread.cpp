@@ -179,7 +179,7 @@ int NetMainThread::init(void)
 
 void NetMainThread::execute(void)
 {
-	if(getNodeInfo()->isConnected())
+	if(getNodeInfo() != nullptr && getNodeInfo()->isConnected())
 		pthread_exit(NULL);
 	init();
 	receiveNetworkMessages();

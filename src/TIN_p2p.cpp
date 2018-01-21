@@ -25,6 +25,7 @@ Command * newTerminalCommand(std::string textCommand)
 int main(void)
 {
 	std::string userCommand;
+	pthread_t thread;
 
 	// Get user commands from terminal
 	while(1)
@@ -36,7 +37,6 @@ int main(void)
 		{
 			if(command->reqSeparateThread())
 			{
-				pthread_t thread;
 				pthread_create(&thread, NULL, Command::commandExeWrapper, static_cast<void *>(command));
 				pthread_detach(thread);
 			}

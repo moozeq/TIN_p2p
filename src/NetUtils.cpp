@@ -8,40 +8,66 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <net/if.h>
+#include <netdb.h>
+#include <ifaddrs.h>
 #include <unistd.h>
+#include <linux/if_link.h>
+#include <iostream>
 
 std::string NetUtils::getSelfIpAddress(void)
 {
-	// Based on: http://www.geekpage.jp/en/programming/linux-network/get-ipaddr.php
-	int fd;
-	struct ifreq ifr;
 	std::string ipAddress;
 
-	fd = socket(AF_INET, SOCK_DGRAM, 0);
+	struct ifaddrs *ifaddr, *ifa;
+	int family, s;
+	char host[NI_MAXHOST];
 
-	/* I want to get an IPv4 IP address */
-	ifr.ifr_addr.sa_family = AF_INET;
+	if (getifaddrs(&ifaddr) == -1) {
+	   perror("getifaddrs");
+	   return std::string("");
+	}
 
-	/* I want IP address attached to "eth0" */
-	strncpy(ifr.ifr_name, "eth0", IFNAMSIZ-1);
-	ioctl(fd, SIOCGIFADDR, &ifr);
-	close(fd);
+	/* Walk through linked list, maintaining head pointer so we
+	  can free list later */
 
-	ipAddress.assign(inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr));
+	ifa = ifaddr;
+	if (ifa == NULL || ifa->ifa_addr == NULL)
+		return std::string("");
+
+	family = ifa->ifa_addr->sa_family;
+
+	if (family == AF_INET || family == AF_INET6) {
+	   s = getnameinfo(ifa->ifa_addr,
+			   (family == AF_INET) ? sizeof(struct sockaddr_in) :
+									 sizeof(struct sockaddr_in6),
+			   host, NI_MAXHOST,
+			   NULL, 0, NI_NUMERICHOST);
+	   if (s != 0) {
+		   printf("getnameinfo() failed: %s\n", gai_strerror(s));
+		   return std::string("");
+	   }
+	}
+
+	freeifaddrs(ifaddr);
+
+
+
+	ipAddress.assign(host);
+	std::cout<<ipAddress<<std::endl;
 	return ipAddress;
 }
 
 std::string NetUtils::getSubnetAddress(void)
 {
 	std::string subnetAddress(getSelfIpAddress());
-	subnetAddress.replace(subnetAddress.find_last_of("."), 3, "0");
+	subnetAddress.replace(subnetAddress.find_last_of(".") + 1, 3, "0");
 	return subnetAddress;
 }
 
 std::string NetUtils::getBroadcastAddress(void)
 {
 	std::string subnetAddress(getSelfIpAddress());
-	subnetAddress.replace(subnetAddress.find_last_of("."), 3, "255");
+	subnetAddress.replace(subnetAddress.find_last_of(".") + 1, 3, "255");
 	return subnetAddress;
 }
 
