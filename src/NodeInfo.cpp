@@ -1,12 +1,18 @@
 #include "NodeInfo.h"
 
-void NodeInfo::addNewFile(size_t hash, size_t nodeId)
+void NodeInfo::addNewFile(std::string hash, std::string* fileString, size_t ownerId)
 {
 	std::unique_lock<std::mutex> uLock(nodeFilesMtx);
-	nodeFiles.insert(std::pair<size_t, size_t>(hash, nodeId));
+	nodeFiles.insert(std::pair<std::string, size_t>(hash, ownerId));
+	std::ofstream file(hash, std::ios::out | std::ios::binary);
+	if (!file) {
+		std::cout << "Couldn't add new file" << std::endl;
+		return;
+	}
+	file << *fileString;
 }
 
-void NodeInfo::removeFile(size_t hash)
+void NodeInfo::removeFile(std::string hash)
 {
 	std::unique_lock<std::mutex> uLock(nodeFilesMtx);
 	auto it = nodeFiles.find(hash);

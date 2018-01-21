@@ -3,12 +3,12 @@
 #include <string.h> //memset
 #include <stdlib.h> //exit(0);
 #include <arpa/inet.h>
+#include <unistd.h>
+#include <sys/uio.h>
 #include <pthread.h>
 #include <iostream>
 #include <errno.h>
 #include "InfoMessage.h"
-#include <unistd.h>
-#include <sys/uio.h>
 #include <netdb.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -65,7 +65,7 @@ void setAndSendInfoMsgUDP(int s, InfoMessage * msg) {
 	si.sin_port = htons(PORT);
 
 	if (inet_aton(BROAD , &si.sin_addr) == 0)
-		die("inet_aton() failed\n");
+		die("inet_aton");
 	if (sendto(s, msg, sizeof(*msg), 0, (struct sockaddr*) &si, slen) < 0)
 		die("sendto");
 }

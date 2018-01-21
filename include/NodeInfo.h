@@ -6,11 +6,14 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <fstream>
 #include <mutex>
 #include <cstdint>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <unistd.h>
+#include <sys/uio.h>
 
 /**
  * 	@brief	Struct NodeInfo which describes each node
@@ -18,7 +21,7 @@
  */
 class NodeInfo{
 public:
-	void addNewFile(std::string hash, std::string& file, size_t nodeId);
+	void addNewFile(std::string hash, std::string* file, size_t ownerId);
 	void removeFile(std::string hash);
 	void addNewNode(struct in_addr nodeIP);
 	void removeNode(size_t nodeId);
@@ -40,7 +43,7 @@ private:
 	size_t nodeId;
 	size_t nodeCnt;
 	std::map<size_t, struct in_addr> nodeMap;
-	std::map<size_t, size_t> nodeFiles;
+	std::map<std::string, size_t> nodeFiles;
 	std::mutex nodeFilesMtx;
 };
 

@@ -29,11 +29,10 @@ Command * newTerminalCommand(std::string textCommand)
 
 int main(void)
 {
-	std::string userCommand;
-
 	// Get user commands from terminal
 	while(1)
 	{
+		std::string userCommand;
 		std::cout << "Enter command (join, add, exit):\n> ";
 		getline(std::cin, userCommand);
 		Command * command = newTerminalCommand(userCommand);
@@ -43,7 +42,6 @@ int main(void)
 			{
 				if (userCommand == "join" && !joined) {
 					pthread_create(&netMainThread, NULL, Command::commandExeWrapper, static_cast<void *>(command));
-					pthread_join(netMainThread, NULL);
 					++joined;
 					continue;
 				} else if (userCommand == "join" && joined) {
