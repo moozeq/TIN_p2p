@@ -97,8 +97,7 @@ void NetMainThread::receiveNetworkMessages(void) {
 			msg->firstField = nodeInfo->getNodeCnt();
 			msg->secondField = nodeInfo->getNodeId();
 			msg->thirdField = nodeInfo->getNodeCnt();
-			//struct sockaddr_in siRec;
-			//siRec = si;
+
 			setAndSendInfoMsgUDP(msg);
 			close(commonSocketFd);
 			break;
@@ -181,27 +180,7 @@ void NetMainThread::execute(void)
 {
 	if(getNodeInfo() != nullptr && getNodeInfo()->isConnected())
 		pthread_exit(NULL);
-	NetUtils::getSelfIpAddress();
 	init();
 	receiveNetworkMessages();
-
-	// Get commands from UDP
-//	while(1)
-//	{
-//		Command * command = newCommand(&p);
-//		if(command != nullptr)
-//		{
-//			if(command->reqSeparateThread())
-//			{
-//				pthread_t thread;
-//				pthread_create(&thread, NULL, Command::commandExeWrapper, static_cast<void *>(command));
-//			}
-//			else
-//			{
-//				command->execute();
-//				delete command;
-//			}
-//		}
-//	}
 }
 

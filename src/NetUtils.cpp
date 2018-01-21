@@ -16,7 +16,8 @@
 
 std::string NetUtils::getSelfIpAddress(void)
 {
-	std::string ipAddress;
+	// Based on: http://man7.org/linux/man-pages/man3/getifaddrs.3.html
+	std::string ipAddress("192.168.");
 
     struct ifaddrs *ifaddr, *ifa;
     int family, s, n;
@@ -29,22 +30,11 @@ std::string NetUtils::getSelfIpAddress(void)
 
     /* Walk through linked list, maintaining head pointer so we
        can free list later */
-
     for (ifa = ifaddr, n = 0; ifa != NULL; ifa = ifa->ifa_next, n++) {
         if (ifa->ifa_addr == NULL)
             continue;
 
         family = ifa->ifa_addr->sa_family;
-
-        /* Display interface name and family (including symbolic
-           form of the latter for the common families) */
-
-        printf("%-8s %s (%d)\n",
-               ifa->ifa_name,
-               (family == AF_PACKET) ? "AF_PACKET" :
-               (family == AF_INET) ? "AF_INET" :
-               (family == AF_INET6) ? "AF_INET6" : "???",
-               family);
 
         /* For an AF_INET* interface address, display the address */
 
@@ -59,22 +49,14 @@ std::string NetUtils::getSelfIpAddress(void)
                 return std::string("");
             }
 
-            printf("\t\taddress: <%s>\n", host);
-
-        } else if (family == AF_PACKET && ifa->ifa_data != NULL) {
-            struct rtnl_link_stats *stats = (struct rtnl_link_stats *)ifa->ifa_data;
-
-            printf("\t\ttx_packets = %10u; rx_packets = %10u\n"
-                   "\t\ttx_bytes   = %10u; rx_bytes   = %10u\n",
-                   stats->tx_packets, stats->rx_packets,
-                   stats->tx_bytes, stats->rx_bytes);
+            if(ipAddress.compare(0, 8, host, 8) == 0){
+            	ipAddress.assign(host);
+            	break;
+            }
         }
     }
 
     freeifaddrs(ifaddr);
-
-	ipAddress.assign(host);
-	std::cout<<ipAddress<<std::endl;
 	return ipAddress;
 }
 
@@ -93,18 +75,10 @@ std::string NetUtils::getBroadcastAddress(void)
 }
 
 struct in_addr NetUtils::getMyIP() {
-	struct ifreq ifr;
-	int fd;
 
-	fd = socket(AF_INET, SOCK_DGRAM, 0);
+	struct sockaddr_in ipAddressStruct;
+	if(!inet_pton(AF_INET, getSelfIpAddress().c_str(), &(ipAddressStruct.sin_addr)))
+        perror("inet_pton error!");
 
-	/* I want to get an IPv4 IP address */
-	ifr.ifr_addr.sa_family = AF_INET;
-
-	/* I want IP address attached to "eth0" */
-	strncpy(ifr.ifr_name, "enp0s3", IFNAMSIZ-1);
-
-	ioctl(fd, SIOCGIFADDR, &ifr);
-	close(fd);
-	return ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr;
+	return ipAddressStruct.sin_addr;
 }
