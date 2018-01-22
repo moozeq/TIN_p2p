@@ -6,7 +6,6 @@
 #include <pthread.h>
 #include <iostream>
 #include <errno.h>
-#include "InfoMessage.h"
 #include <unistd.h>
 #include <sys/uio.h>
 #include <netdb.h>
@@ -16,6 +15,7 @@
 #include <net/if.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
+#include "../include/MessageFrames.h"
 
 NodeInfo* NetMainThread::nodeInfo;
 

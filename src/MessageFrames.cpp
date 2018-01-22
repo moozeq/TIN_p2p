@@ -1,4 +1,4 @@
-#include "InfoMessage.h"
+#include "MessageFrames.h"
 
 InfoMessage::InfoMessage(size_t _opcode) {
 	opcode = _opcode;
@@ -7,3 +7,7 @@ InfoMessage::InfoMessage(size_t _opcode) {
 	thirdField = 0;
 }
 
+DataMessage::DataMessage(size_t _opcode){
+	opcode = _opcode;
+	fileCountOrSize = 0;
+}

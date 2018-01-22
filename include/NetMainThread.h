@@ -4,8 +4,9 @@
 #include "Command.h"
 #include "FileTransfer.h"
 #include "NodeInfo.h"
-#include "InfoMessage.h"
 #include <string>
+
+#include "MessageFrames.h"
 #include "NetUtils.h"
 
 class NetMainThread: public Command
