@@ -15,14 +15,29 @@ TcpMainService::~TcpMainService()
 
 }
 
+Command * TcpMainService::getCommand(size_t opcode, int socketFd)
+{
+	Command * command = nullptr;
+	switch(opcode){
+	case 103:
+		break;
+	case 301:
+	case 302:
+		command = new FilesTableReceive(opcode, socketFd);
+		break;
+	default:
+		break;
+	}
+	return command;
+}
+
 void TcpMainService::tcpServiceLoop(void)
 {
 	int sock;
-	unsigned length;
 	struct sockaddr_in server;
 	int msgsock;
-	char buf[1024];
-	int rval;
+	size_t opcode;
+	size_t rval;
 	sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock == -1) {
 		perror("opening stream socket");
@@ -41,23 +56,45 @@ void TcpMainService::tcpServiceLoop(void)
 	/* zacznij przyjmować polaczenia... */
 	listen(sock, 5);
 
-
-	do {
+	Command * command;
+	while(true) {
 		msgsock = accept(sock,(struct sockaddr *) 0,(unsigned *) 0);
 		if (msgsock == -1 )
 			perror("accept");
 		else
-			do {
-				memset(buf, 0, sizeof buf);
-				if ((rval = read(msgsock,buf, 1024)) == -1)
-					perror("reading stream message");
-				if (rval == 0)
-					printf("Ending connection\n");
+		{
+			memset(&opcode, 0, sizeof(opcode));
+			if ((rval = read(msgsock, &opcode, sizeof(opcode))) == -1)
+				perror("reading stream message");
+			if (rval == 0)
+				printf("Ending connection\n");
+			else
+			{
+				command = getCommand(opcode, msgsock);
+				if(command->reqSeparateThread())
+				{
+					pthread_t thread;
+					pthread_create(&thread, NULL, Command::commandExeWrapper, static_cast<void *>(command));
+					pthread_detach(thread);
+				}
 				else
-					printf("-->%s\n", buf);
-			} while (rval != 0);
+				{
+					command->execute();
+					delete command;
+				}
+			}
+		}
+//			do {
+//				memset(buf, 0, sizeof buf);
+//				if ((rval = read(msgsock,buf, 1024)) == -1)
+//					perror("reading stream message");
+//				if (rval == 0)
+//					printf("Ending connection\n");
+//				else
+//					printf("-->%s\n", buf);
+//			} while (rval != 0);
 		close(msgsock);
-	} while(true);
+	}
 
 	pthread_exit(NULL);
 }
