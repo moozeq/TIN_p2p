@@ -9,14 +9,13 @@ void FilesTableReceive::execute(void)
 	int readBytes;
 	int fileNumber = 0;
 	if ((readBytes = read(socketFd, &filesCount, sizeof(filesCount))) == -1)
-				perror("reading stream message");
+		perror("reading stream message");
+
 	do {
 		memset(buf, 0, sizeof(buf));
 		if ((readBytes = read(socketFd,buf, 1024)) == -1)
 			perror("reading stream message");
-		if (readBytes == 0)
-			printf("Ending connection\n");
-		else
+		if (readBytes != 0)
 		{
 			if(opcode == 302)
 			{
@@ -38,4 +37,6 @@ void FilesTableReceive::execute(void)
 			}
 		}
 	} while (readBytes != 0);
+	close(socketFd);
+	pthread_exit(NULL);
 }

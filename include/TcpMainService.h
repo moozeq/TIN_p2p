@@ -6,21 +6,22 @@
 #include <pthread.h>
 #include <string>
 #include <unistd.h>
-#include "Command.h"
 #include "MessageFrames.h"
 #include "FilesTableReceive.h"
+#include "ReceiveFileTcp.h"
 
 class TcpMainService: public Command
 {
 public:
-	TcpMainService();
-	virtual ~TcpMainService();
+	TcpMainService() = default;
+	virtual ~TcpMainService() = default;
 
-	void tcpServiceLoop(void);
+	void execute(void);
+	bool reqSeparateThread(void) {	return true; };
 
 private:
 	Command * getCommand(size_t opcode, int socketFd);
-
+	void tcpServiceLoop(void);
 };
 
 #endif /* TCPMAINSERVICE_H_ */

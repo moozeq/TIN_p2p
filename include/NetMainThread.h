@@ -2,7 +2,6 @@
 #define SRC_NETMAINTHREAD_H_
 
 #include "Command.h"
-#include "FileTransfer.h"
 #include "NodeInfo.h"
 #include <string>
 

@@ -18,8 +18,8 @@
  */
 class NodeInfo{
 public:
-	void addNewFile(size_t hash, size_t nodeId);
-	void removeFile(size_t hash);
+	void addNewFileEntry(std::string hash, size_t nodeId);
+	void removeFile(std::string hash);
 	void addNewNode(struct in_addr nodeIP);
 	void removeNode(size_t nodeId);
 	struct in_addr getNodeIP(size_t nodeId);
@@ -42,7 +42,7 @@ private:
 	size_t nodeId;
 	size_t nodeCnt;
 	std::map<size_t, struct in_addr> nodeMap;
-	std::map<size_t, size_t> nodeFiles;
+	std::map<std::string, size_t> nodeFiles;	// <file hash, file id>
 	bool connected;
 	std::mutex nodeFilesMtx;
 };

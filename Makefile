@@ -13,8 +13,9 @@ CFLAGS = -Wall $(INC) -std=c++11 -pthread
 #
 # Project files
 #
-SRCS = $(SRC_DIR)/TIN_p2p.cpp $(SRC_DIR)/NodeInfo.cpp $(SRC_DIR)/FileTransfer.cpp $(SRC_DIR)/AddNode.cpp $(SRC_DIR)/NetMainThread.cpp \
- $(SRC_DIR)/MessageFrames.cpp $(SRC_DIR)/NetUtils.cpp $(SRC_DIR)/TcpMainService.cpp $(SRC_DIR)/FilesTableReceive.cpp
+SRCS = $(SRC_DIR)/TIN_p2p.cpp $(SRC_DIR)/NodeInfo.cpp $(SRC_DIR)/AddNode.cpp $(SRC_DIR)/NetMainThread.cpp \
+ $(SRC_DIR)/MessageFrames.cpp $(SRC_DIR)/NetUtils.cpp $(SRC_DIR)/TcpMainService.cpp $(SRC_DIR)/FilesTableReceive.cpp \
+ $(SRC_DIR)/ReceiveFileTcp.cpp
 
 #
 # Object files

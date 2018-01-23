@@ -6,15 +6,6 @@
 #include <stdio.h>
 #include <string.h>
 
-TcpMainService::TcpMainService()
-{
-}
-
-TcpMainService::~TcpMainService()
-{
-
-}
-
 Command * TcpMainService::getCommand(size_t opcode, int socketFd)
 {
 	Command * command = nullptr;
@@ -25,6 +16,9 @@ Command * TcpMainService::getCommand(size_t opcode, int socketFd)
 	case 302:
 		command = new FilesTableReceive(opcode, socketFd);
 		break;
+	case 304:
+		command = new ReceiveFileTcp(opcode, socketFd);
+		break;
 	default:
 		break;
 	}
@@ -33,19 +27,16 @@ Command * TcpMainService::getCommand(size_t opcode, int socketFd)
 
 void TcpMainService::tcpServiceLoop(void)
 {
-	int sock;
+	int sock, msgsock, readBytes;
 	struct sockaddr_in server;
-	int msgsock;
 	size_t opcode;
-	size_t rval;
 	sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock == -1) {
 		perror("opening stream socket");
 		exit(1);
 	}
 
-	/* dowiaz adres do gniazda */
-	/* “prawdziwy” serwer pobrał by port poprzez getservbyname() */
+	// Bind address to the socket
 	server.sin_family = AF_INET;
 	server.sin_addr.s_addr = INADDR_ANY;
 	server.sin_port = 38888;
@@ -53,7 +44,7 @@ void TcpMainService::tcpServiceLoop(void)
 		perror("binding stream socket");
 		exit(1);
 	}
-	/* zacznij przyjmować polaczenia... */
+	// Start listen on tcp socket
 	listen(sock, 5);
 
 	Command * command;
@@ -64,9 +55,9 @@ void TcpMainService::tcpServiceLoop(void)
 		else
 		{
 			memset(&opcode, 0, sizeof(opcode));
-			if ((rval = read(msgsock, &opcode, sizeof(opcode))) == -1)
+			if ((readBytes = read(msgsock, &opcode, sizeof(opcode))) == -1)
 				perror("reading stream message");
-			if (rval == 0)
+			if (readBytes == 0)
 				printf("Ending connection\n");
 			else
 			{
@@ -84,17 +75,13 @@ void TcpMainService::tcpServiceLoop(void)
 				}
 			}
 		}
-//			do {
-//				memset(buf, 0, sizeof buf);
-//				if ((rval = read(msgsock,buf, 1024)) == -1)
-//					perror("reading stream message");
-//				if (rval == 0)
-//					printf("Ending connection\n");
-//				else
-//					printf("-->%s\n", buf);
-//			} while (rval != 0);
-		close(msgsock);
+		close(msgsock);	// It is not needed in parent thread anymore
 	}
+	close(sock);
+}
 
+void TcpMainService::execute(void)
+{
+	tcpServiceLoop();
 	pthread_exit(NULL);
 }
