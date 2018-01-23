@@ -22,6 +22,8 @@ public:
 private:
 	Command * getCommand(size_t opcode, int socketFd);
 	void tcpServiceLoop(void);
+
+	const unsigned port = 8888;
 };
 
 #endif /* TCPMAINSERVICE_H_ */

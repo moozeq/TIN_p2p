@@ -178,11 +178,20 @@ int NetMainThread::init(void)
 
 void NetMainThread::execute(void)
 {
+	pthread_t thread;
+	Command * command;
+
 	if(getNodeInfo() != nullptr && getNodeInfo()->isConnected()){
 		std::cout<<"Already connected to network!\n";
 		pthread_exit(NULL);
 	}
 	init();
+
+	// Create Main tcp listener thread
+	command = new TcpMainService();
+	pthread_create(&thread, NULL, Command::commandExeWrapper, static_cast<void *>(command));
+	pthread_detach(thread);
+
 	receiveNetworkMessages();
 }
 

@@ -8,6 +8,7 @@
 
 #include "MessageFrames.h"
 #include "NetUtils.h"
+#include "TcpMainService.h"
 
 class NetMainThread: public Command
 {

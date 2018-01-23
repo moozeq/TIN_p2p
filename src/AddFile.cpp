@@ -101,6 +101,7 @@ void AddFile::execute(void)
 			 		return;
 			 	}
 			 file << fileStr;
+			 file.close();
 			 NetMainThread::getNodeInfo()->addNewFileEntry(mdString, fileNodeId);
 		 }
 		 else 												//file in different node
