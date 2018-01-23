@@ -44,23 +44,16 @@ void sendFileTCP(string hash, string* stringFile, size_t nodeId) {
 	serv_addr.sin_port = htons(PORT);
 	serv_addr.sin_addr = NetMainThread::getNodeInfo()->getNodeIP(nodeId);
 
-//	inet_pton(AF_INET, "192.168.56.102", &serv_addr.sin_addr); //test
+	//inet_pton(AF_INET, "192.168.0.18", &serv_addr.sin_addr); //test
 	if(connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
 		ptDie("connect");
 
-//	size_t opcode = htons(301);
-//	size_t ownerId = htons(nodeId);
-//	write(sockfd, &opcode, sizeof(size_t));
-//	write(sockfd, &hash, hash.size());
-//	write(sockfd, &ownerId, sizeof(size_t));
-//	write(sockfd, stringFile, stringFile->size());
-
-	string opcode = "301";
-	string nodeIdStr = to_string(nodeId);
-	send(sockfd, (const void*)opcode.c_str(), opcode.size(), 0); //opcode to recognize file
-	send(sockfd, (const void*)hash.c_str(), hash.size(), 0); //file id
-	send(sockfd, (const void*)nodeIdStr.c_str(), nodeIdStr.size(), 0); //owner node id
-	send(sockfd, (const void*)stringFile->c_str(), stringFile->size(), 0); //file
+	size_t opcode = 301;
+	size_t ownerId = nodeId;
+	write(sockfd, &opcode, sizeof(size_t));
+	write(sockfd, hash.c_str(), hash.size() + 1);
+	write(sockfd, &ownerId, sizeof(size_t));
+	write(sockfd, stringFile->c_str(), stringFile->size() + 1);
 
 	close(sockfd);
 }
@@ -90,7 +83,6 @@ void AddFile::execute(void)
 	mdString = ssMD5.str();
 	cout << "File hash: " << mdString << endl;
 
-//	sendFileTCP(mdString, &fileStr, 0);
 	NodeInfo* nodeInfo = NetMainThread::getNodeInfo();
 	if (nodeInfo != nullptr) {
 		size_t fileNodeId = calcNodeId(mdString);
