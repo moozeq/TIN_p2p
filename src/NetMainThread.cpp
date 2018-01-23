@@ -3,12 +3,12 @@
 #include <string.h> //memset
 #include <stdlib.h> //exit(0);
 #include <arpa/inet.h>
-#include <unistd.h>
-#include <sys/uio.h>
 #include <pthread.h>
 #include <iostream>
 #include <errno.h>
 #include "InfoMessage.h"
+#include <unistd.h>
+#include <sys/uio.h>
 #include <netdb.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -17,73 +17,56 @@
 #include <sys/types.h>
 #include <sys/ioctl.h>
 
-#define BROAD "192.168.56.255"
-#define PORT 8888   //The port on which to send data
-
-pthread_t receiver;
-struct sockaddr_in si;
-int s; //socket
 NodeInfo* NetMainThread::nodeInfo;
 
 void die(std::string s)
 {
     perror(s.c_str());
-    exit(1);
+    pthread_exit((void*)nullptr);
 }
 
-void setAndSendInfoMsgUDP(int s, InfoMessage * msg, struct sockaddr_in siRec) {
-	socklen_t slen = sizeof(siRec);
-
-	//socket
-	if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
-		die("socket");
-
-	int option = 1;
-	if (setsockopt(s,SOL_SOCKET,SO_REUSEADDR, &option, sizeof(option)) < 0)
-		die(strerror(errno));
-
-	if (sendto(s, msg, sizeof(*msg), 0, (struct sockaddr*) &siRec, slen) < 0)
-		die("sendto");
+NodeInfo * NetMainThread::getNodeInfo(void){
+	return nodeInfo;
 }
 
-void setAndSendInfoMsgUDP(int s, InfoMessage * msg) {
-	socklen_t slen = sizeof(si);
+void NetMainThread::setAndSendInfoMsgUDP(InfoMessage * msg) {
+	socklen_t slen = sizeof(commonSocketAddrIn);
 
 	//socket
-	if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
+	if ((commonSocketFd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
 		die("socket");
 
 	//broadcast
 	int broadcast = 1, option = 1;
-	if (setsockopt(s,SOL_SOCKET,SO_BROADCAST, &broadcast, sizeof(broadcast)) < 0)
+	if (setsockopt(commonSocketFd,SOL_SOCKET,SO_BROADCAST, &broadcast, sizeof(broadcast)) < 0)
 		die(strerror(errno));
-	if (setsockopt(s,SOL_SOCKET,SO_REUSEADDR, &option, sizeof(option)) < 0)
+	if (setsockopt(commonSocketFd,SOL_SOCKET,SO_REUSEADDR, &option, sizeof(option)) < 0)
 		die(strerror(errno));
 
-	memset((char *) &si, 0, sizeof(si));
-	si.sin_family = AF_INET;
-	si.sin_port = htons(PORT);
+	memset((char *) &commonSocketAddrIn, 0, sizeof(commonSocketAddrIn));
+	commonSocketAddrIn.sin_family = AF_INET;
+	commonSocketAddrIn.sin_port = htons(port);
 
-	if (inet_aton(BROAD , &si.sin_addr) == 0)
+	if (inet_aton(broadcastAddress.c_str() , &commonSocketAddrIn.sin_addr) == 0)
 		die("inet_aton");
-	if (sendto(s, msg, sizeof(*msg), 0, (struct sockaddr*) &si, slen) < 0)
+	if (sendto(commonSocketFd, msg, sizeof(*msg), 0, (struct sockaddr*) &commonSocketAddrIn, slen) < 0)
 		die("sendto");
 }
 
-ssize_t setAndReceiveInfoMsgUDP(int s, unsigned timeout, InfoMessage * msg) {
+ssize_t NetMainThread::setAndReceiveInfoMsgUDP(unsigned timeout, InfoMessage * msg) {
 	ssize_t recv_len;
-	socklen_t slen = sizeof(si);
+	socklen_t slen = sizeof(commonSocketAddrIn);
 	//receive udp socket
-	if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
+	if ((commonSocketFd=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
 		die("socket");
 	// zero out the structure
-	memset((char *) &si, 0, sizeof(si));
-	si.sin_family = AF_INET;
-	si.sin_port = htons(PORT);
-	si.sin_addr.s_addr = htonl(INADDR_ANY);
+	memset((char *) &commonSocketAddrIn, 0, sizeof(commonSocketAddrIn));
+	commonSocketAddrIn.sin_family = AF_INET;
+	commonSocketAddrIn.sin_port = htons(port);
+	commonSocketAddrIn.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	int option = 1;
-	if (setsockopt(s,SOL_SOCKET,SO_REUSEADDR, &option, sizeof(option)) < 0)
+	if (setsockopt(commonSocketFd,SOL_SOCKET,SO_REUSEADDR, &option, sizeof(option)) < 0)
 		die(strerror(errno));
 
 	if (timeout > 0) {
@@ -91,55 +74,37 @@ ssize_t setAndReceiveInfoMsgUDP(int s, unsigned timeout, InfoMessage * msg) {
 		struct timeval tv;
 		tv.tv_sec = timeout;
 		tv.tv_usec = 0;
-		if (setsockopt(s, SOL_SOCKET, SO_RCVTIMEO,&tv,sizeof(tv)) < 0)
+		if (setsockopt(commonSocketFd, SOL_SOCKET, SO_RCVTIMEO,&tv,sizeof(tv)) < 0)
 			die(strerror(errno));
 	}
 
 	//bind socket to port
-	if(bind(s , (struct sockaddr*)&si, sizeof(si) ) < 0)
+	if(bind(commonSocketFd , (struct sockaddr*)&commonSocketAddrIn, sizeof(commonSocketAddrIn) ) < 0)
 		die("bind");
-	if ((recv_len = recvfrom(s, msg, sizeof(*msg), 0, (struct sockaddr *) &si, &slen)) < 0 && !timeout)
+	if ((recv_len = recvfrom(commonSocketFd, msg, sizeof(*msg), 0, (struct sockaddr *) &commonSocketAddrIn, &slen)) < 0 && !timeout)
 		die("recvfrom");
 	return recv_len;
-}
-
-struct in_addr getMyIP() {
-	struct ifreq ifr;
-	int fd;
-
-	fd = socket(AF_INET, SOCK_DGRAM, 0);
-
-	/* I want to get an IPv4 IP address */
-	ifr.ifr_addr.sa_family = AF_INET;
-
-	/* I want IP address attached to "eth0" */
-	strncpy(ifr.ifr_name, "enp0s3", IFNAMSIZ-1);
-
-	ioctl(fd, SIOCGIFADDR, &ifr);
-	close(fd);
-	return ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr;
 }
 
 void NetMainThread::receiveNetworkMessages(void) {
 	std::cout << "Net Main Thread's waiting for requests..." << std::endl;
 	InfoMessage * msg = new InfoMessage();
-	while (setAndReceiveInfoMsgUDP(s, 0, msg)) {
-		close(s);
+	while (setAndReceiveInfoMsgUDP(0, msg)) {
+		close(commonSocketFd);
 		switch(msg->opcode) {
 		case 100: //new node wants to join
 			msg->opcode = 102;
 			msg->firstField = nodeInfo->getNodeCnt();
 			msg->secondField = nodeInfo->getNodeId();
 			msg->thirdField = nodeInfo->getNodeCnt();
-			//struct sockaddr_in siRec;
-			//siRec = si;
-			setAndSendInfoMsgUDP(s, msg);
-			close(s);
+
+			setAndSendInfoMsgUDP(msg);
+			close(commonSocketFd);
 			break;
 		case 101:
 		case 103:
 		case 203:
-			nodeInfo->addNewNode(si.sin_addr);
+			nodeInfo->addNewNode(commonSocketAddrIn.sin_addr);
 			break;
 		case 300:
 		case 301: break;
@@ -151,31 +116,31 @@ void NetMainThread::receiveNetworkMessages(void) {
 void NetMainThread::buildNetwork(void) {
 	std::cout << "Didn't receive any response, start building new P2P network..." << std::endl;
 	nodeInfo = new NodeInfo();
-	nodeInfo->addNewNode(getMyIP());
+	nodeInfo->addNewNode(NetUtils::getMyIP());
 	std::cout << "New P2P network created" << std::endl;
 }
 
 void NetMainThread::joinNetwork(InfoMessage * msg) {
 	if (msg->opcode == 102) {
 		nodeInfo = new NodeInfo(msg->thirdField, msg->firstField + 1); //node id, node cnt
-		nodeInfo->setNode(nodeInfo->getNodeId(), getMyIP()); //add current node
-		nodeInfo->setNode(msg->secondField, si.sin_addr); //add sender node
+		nodeInfo->setNode(nodeInfo->getNodeId(), NetUtils::getMyIP()); //add current node
+		nodeInfo->setNode(msg->secondField, commonSocketAddrIn.sin_addr); //add sender node
 	}
 	ssize_t recv_len;
-	socklen_t slen = sizeof(si);
-	while((recv_len = recvfrom(s, msg, sizeof(*msg), 0, (struct sockaddr *) &si, &slen)) > 0) {
+	socklen_t slen = sizeof(commonSocketAddrIn);
+	while((recv_len = recvfrom(commonSocketFd, msg, sizeof(*msg), 0, (struct sockaddr *) &commonSocketAddrIn, &slen)) > 0) {
 		if (msg->opcode == 102) { //msg about network (cnt, sender id, receiver id)
 			if (msg->firstField + 1 != nodeInfo->getNodeCnt() || msg->thirdField != nodeInfo->getNodeId())
 				die("Network's corrupted");
 			else {
-				nodeInfo->setNode(msg->secondField, si.sin_addr); //add sender node
+				nodeInfo->setNode(msg->secondField, commonSocketAddrIn.sin_addr); //add sender node
 				if (nodeInfo->getNodeCnt() == nodeInfo->getNodeMapSize()) {
 					std::cout << "Network's been constructed" << std::endl;
 					break;
 				}
 			}
 		} else if (msg->opcode == 101) { //msg about unlinking from network
-			nodeInfo->setNode(msg->secondField, getMyIP()); //change unlinking node ip to this node ip
+			nodeInfo->setNode(msg->secondField, NetUtils::getMyIP()); //change unlinking node ip to this node ip
 			nodeInfo->setNodeId(msg->secondField); //set this node id to id of unlinking node
 			if (nodeInfo->getNodeCnt() != (msg->firstField + 1)) //wrong node cnt
 				die("Network's corrupted");
@@ -186,53 +151,38 @@ void NetMainThread::joinNetwork(InfoMessage * msg) {
 			}
 		}
 	}
-	close(s);
+	close(commonSocketFd);
 	msg->opcode = 203; //nodeMap built
-	setAndSendInfoMsgUDP(s, msg);
+	setAndSendInfoMsgUDP(msg);
 	//now needs to get files from nodes
 }
 
 int NetMainThread::init(void)
 {
 	InfoMessage * msg = new InfoMessage(100);
-	setAndSendInfoMsgUDP(s, msg);
+	setAndSendInfoMsgUDP(msg);
 	std::cout<<"Sent request - joining network, opcode = " << msg->opcode <<std::endl;
-	close(s); //close udp socket for broadcast
+	close(commonSocketFd); //close udp socket for broadcast
 
 	//receive udp socket
 	std::cout<<"Waiting for response within " << 10 << " seconds" <<std::endl;
-	if (setAndReceiveInfoMsgUDP(s, 10, msg) < 0)
+	if (setAndReceiveInfoMsgUDP(10, msg) < 0)
 		buildNetwork();
 	else
 		joinNetwork(msg);
 	delete msg;
-	close(s);
+	close(commonSocketFd);
 
     return 0;
 }
 
 void NetMainThread::execute(void)
 {
+	if(getNodeInfo() != nullptr && getNodeInfo()->isConnected()){
+		std::cout<<"Already connected to network!\n";
+		pthread_exit(NULL);
+	}
 	init();
 	receiveNetworkMessages();
-
-	// Get commands from UDP
-//	while(1)
-//	{
-//		Command * command = newCommand(&p);
-//		if(command != nullptr)
-//		{
-//			if(command->reqSeparateThread())
-//			{
-//				pthread_t thread;
-//				pthread_create(&thread, NULL, Command::commandExeWrapper, static_cast<void *>(command));
-//			}
-//			else
-//			{
-//				command->execute();
-//				delete command;
-//			}
-//		}
-//	}
 }
 

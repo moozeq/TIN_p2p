@@ -15,6 +15,7 @@
 #include <sys/ioctl.h>
 #include <stdio.h>
 #include <pthread.h>
+#include <unistd.h>
 #define PORT 8888   //The port on which to send data
 
 using namespace std;
@@ -43,8 +44,7 @@ void sendFileTCP(string hash, string* stringFile, size_t nodeId) {
 	serv_addr.sin_port = htons(PORT);
 	//serv_addr.sin_addr = NetMainThread::getNodeInfo()->getNodeIP(nodeId);
 
-	inet_pton(AF_INET, "192.168.56.102", &serv_addr.sin_addr);
-
+	//inet_pton(AF_INET, "192.168.56.102", &serv_addr.sin_addr); //test
 	if(connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
 		ptDie("connect");
 
@@ -83,7 +83,6 @@ void AddFile::execute(void)
 	mdString = ssMD5.str();
 	cout << "File hash: " << mdString << endl;
 
-	sendFileTCP(mdString, &fileStr, 0);
 	NodeInfo* nodeInfo = NetMainThread::getNodeInfo();
 	if (nodeInfo != nullptr) {
 		size_t fileNodeId = calcNodeId(mdString);
