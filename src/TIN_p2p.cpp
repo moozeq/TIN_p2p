@@ -5,6 +5,7 @@
 #include "NetMainThread.h"
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <pthread.h>
 
 int joined = 0;
@@ -13,9 +14,11 @@ pthread_t netMainThread;
 Command * newTerminalCommand(std::string textCommand)
 {
 	Command * outCommand;
-	std::string first = textCommand.substr(0, textCommand.find(" "));
-	if(first == "add") {
-		outCommand = new AddFile(textCommand);
+	std::string comm, param;
+	std::stringstream ss(textCommand);
+	ss >> comm >> param;
+	if(comm == "add") {
+		outCommand = new AddFile(param);
 	}
 	else if(textCommand == "join")
 		outCommand = new NetMainThread();

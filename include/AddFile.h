@@ -7,8 +7,8 @@
 class AddFile: public Command
 {
 public:
-	std::string command;
-	AddFile(std::string str) : command(str) {}
+	std::string param;
+	AddFile(std::string _param) : param(_param) {}
 	virtual ~AddFile() {}
 
 	void execute(void);
