@@ -4,6 +4,7 @@
 #include "Command.h"
 #include "NodeInfo.h"
 #include <string>
+#include "NetUtils.h"
 
 #include "MessageFrames.h"
 #include "NetUtils.h"

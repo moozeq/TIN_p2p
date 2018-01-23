@@ -38,5 +38,4 @@ void FilesTableReceive::execute(void)
 		}
 	} while (readBytes != 0);
 	close(socketFd);
-	pthread_exit(NULL);
 }

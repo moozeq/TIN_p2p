@@ -29,5 +29,4 @@ void ReceiveFileTcp::execute(void)
 	newFile.close();
 	NetMainThread::getNodeInfo()->addNewFileEntry(fileHash, ownerId);
 	close(socketFd);
-	pthread_exit(NULL);
 }

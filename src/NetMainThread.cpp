@@ -22,7 +22,7 @@ NodeInfo* NetMainThread::nodeInfo;
 void die(std::string s)
 {
     perror(s.c_str());
-    exit(1);
+    pthread_exit((void*)nullptr);
 }
 
 NodeInfo * NetMainThread::getNodeInfo(void){
@@ -48,7 +48,7 @@ void NetMainThread::setAndSendInfoMsgUDP(InfoMessage * msg) {
 	commonSocketAddrIn.sin_port = htons(port);
 
 	if (inet_aton(broadcastAddress.c_str() , &commonSocketAddrIn.sin_addr) == 0)
-		die("inet_aton() failed\n");
+		die("inet_aton");
 	if (sendto(commonSocketFd, msg, sizeof(*msg), 0, (struct sockaddr*) &commonSocketAddrIn, slen) < 0)
 		die("sendto");
 }

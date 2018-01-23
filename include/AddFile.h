@@ -2,12 +2,14 @@
 #define ADDNODE_H_
 
 #include "Command.h"
+#include <string>
 
-class AddNode: public Command
+class AddFile: public Command
 {
 public:
-	AddNode() {}
-	virtual ~AddNode() {}
+	std::string param;
+	AddFile(std::string _param) : param(_param) {}
+	virtual ~AddFile() {}
 
 	void execute(void);
 	bool reqSeparateThread(void) {return true;}

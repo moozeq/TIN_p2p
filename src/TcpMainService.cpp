@@ -83,5 +83,4 @@ void TcpMainService::tcpServiceLoop(void)
 void TcpMainService::execute(void)
 {
 	tcpServiceLoop();
-	pthread_exit(NULL);
 }

@@ -1,16 +1,21 @@
+#include <AddFile.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "NodeInfo.h"
 #include "NetMainThread.h"
-#include "AddNode.h"
 #include <iostream>
+#include <string>
+#include <sstream>
 #include <pthread.h>
 
 Command * newTerminalCommand(std::string textCommand)
 {
 	Command * outCommand;
-	if(textCommand == "add") {
-		outCommand = new AddNode();
+	std::string comm, param;
+	std::stringstream ss(textCommand);
+	ss >> comm >> param;
+	if(comm == "add") {
+		outCommand = new AddFile(param);
 	}
 	else if(textCommand == "join")
 		outCommand = new NetMainThread();
@@ -30,8 +35,9 @@ int main(void)
 	// Get user commands from terminal
 	while(1)
 	{
-		std::cout << "Enter command (join, exit):\n> ";
-		std::cin >> userCommand;
+		std::string userCommand;
+		std::cout << "Enter command (join, add, exit):\n> ";
+		getline(std::cin, userCommand);
 		Command * command = newTerminalCommand(userCommand);
 		if(command != nullptr)
 		{
