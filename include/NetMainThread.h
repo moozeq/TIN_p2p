@@ -28,9 +28,10 @@ public:
 	void parseMsg(InfoMessage * msg);
 	void joinNetwork(InfoMessage * req);
 
+	static const unsigned port = 8888;
+
 private:
 	std::string broadcastAddress;
-	const unsigned port = 8888;
 	int commonSocketFd;
 	struct sockaddr_in commonSocketAddrIn;
 };
