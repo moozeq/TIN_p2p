@@ -55,10 +55,10 @@ void TcpMainService::tcpServiceLoop(void)
 		else
 		{
 			memset(&opcode, 0, sizeof(opcode));
-			if ((readBytes = read(msgsock, &opcode, sizeof(opcode))) == -1)
+			if ((readBytes = read(msgsock, &opcode, sizeof(size_t))) == -1)
 				perror("reading stream message");
 			if (readBytes == 0)
-				printf("Ending connection\n");
+				std::cout << "Ending connection" << std::endl;
 			else
 			{
 				command = getCommand(opcode, msgsock);

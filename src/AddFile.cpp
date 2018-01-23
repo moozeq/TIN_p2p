@@ -83,6 +83,7 @@ void AddFile::execute(void)
 	mdString = ssMD5.str();
 	cout << "File hash: " << mdString << endl;
 
+	//sendFileTCP(mdString, &fileStr, 0);
 	NodeInfo* nodeInfo = NetMainThread::getNodeInfo();
 	if (nodeInfo != nullptr) {
 		size_t fileNodeId = calcNodeId(mdString);

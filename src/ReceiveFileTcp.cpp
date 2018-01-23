@@ -2,31 +2,27 @@
 
 void ReceiveFileTcp::execute(void)
 {
+	size_t ownerId;
 	char buf[1024];
-	size_t fileSize, ownerId;
-	std::ofstream newFile;
+	char hash[33];
+
 	int readBytes;
-	char header[2 * sizeof(size_t) + 16];	// fileIf, file size, hash (16 bytes)
-	if ((readBytes = read(socketFd, header, sizeof(header))) == -1)
+	if ((readBytes = read(socketFd, hash, 33)) == -1) //read hash
+		perror("reading stream message");
+	if ((readBytes = read(socketFd, &ownerId, sizeof(size_t))) == -1) //read ownerId
 		perror("reading stream message");
 
-	fileSize = (size_t)(header);
-	std::string fileHash(&header[3], &header[3] + 16);
-	ownerId = (size_t)(&header[19]);
-	newFile.open(fileHash.c_str(), std::ios::out);
-
+	std::ofstream newFile(hash, std::ios::out | std::ios::binary);
 	do {
 		memset(buf, 0, sizeof(buf));
 		if ((readBytes = read(socketFd, buf, 1024)) == -1)
 			perror("reading stream message");
 		if (readBytes != 0)
 			newFile.write(buf, readBytes);
-		fileSize -= readBytes;
 	} while (readBytes != 0);
-	if(fileSize != 0)
-		perror("Socket read error! Not all bytes received");
 
 	newFile.close();
+	std::string fileHash(hash);
 	NetMainThread::getNodeInfo()->addNewFileEntry(fileHash, ownerId);
 	close(socketFd);
 }
