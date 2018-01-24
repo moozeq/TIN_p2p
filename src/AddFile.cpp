@@ -16,7 +16,6 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <unistd.h>
-#define PORT 8888   //The port on which to send data
 
 using namespace std;
 
@@ -41,7 +40,7 @@ void sendFileTCP(string hash, string* stringFile, size_t nodeId) {
 		ptDie("socket");
 
 	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_port = htons(PORT);
+	serv_addr.sin_port = htons(NetMainThread::port);
 	serv_addr.sin_addr = NetMainThread::getNodeInfo()->getNodeIP(nodeId);
 
 	//inet_pton(AF_INET, "192.168.56.101", &serv_addr.sin_addr); //test
