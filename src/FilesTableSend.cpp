@@ -16,7 +16,7 @@ FilesTableSend::FilesTableSend(struct in_addr _targetNodeIP)
 
 void FilesTableSend::insertData(std::string hash, size_t ownerId)
 {
-	strncpy(ownerIdCharTable, (char *)ownerId, sizeof(size_t));
+	strncpy(ownerIdCharTable, (char *)&ownerId, sizeof(size_t));
 	std::string stringOwnerId(ownerIdCharTable);
 	fileTableData << hash << stringOwnerId;
 }
