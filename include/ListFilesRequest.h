@@ -10,18 +10,12 @@
 #include <cstdlib>
 #include <unistd.h>
 #include <arpa/inet.h>
-#include <pthread.h>
 #include <iostream>
 #include <errno.h>
 #include <unistd.h>
-#include <sys/uio.h>
-#include <netdb.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
 #include <string.h>
-#include <net/if.h>
 #include <sys/types.h>
-#include <sys/ioctl.h>
 #include <functional>
 
 class ListFilesRequest: public Command

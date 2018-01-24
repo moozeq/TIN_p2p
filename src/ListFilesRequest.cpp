@@ -7,7 +7,7 @@ void ListFilesRequest::sendInfoMsgUDP(struct in_addr * in_addr)
 			0, (struct sockaddr*) &commonSocketAddrIn, sizeof(commonSocketAddrIn)) < 0)
 	{
 		Command::printErrAndDie(this, "sendto");
-		std::cout<<"List request to x host failed..."<<std::endl;
+		std::cout<<"List request to "<< inet_ntoa(*in_addr) <<" host failed..."<<std::endl;
 	}
 }
 
