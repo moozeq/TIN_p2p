@@ -13,11 +13,11 @@ Command * TcpMainService::getCommand(size_t opcode, int socketFd)
 	case 103:
 		break;
 	case 301:
-	case 302:
-		command = new FilesTableReceive(opcode, socketFd);
-		break;
 	case 304:
 		command = new ReceiveFileTcp(opcode, socketFd);
+		break;
+	case 302:
+		command = new FilesTableReceive(opcode, socketFd);
 		break;
 	default:
 		break;

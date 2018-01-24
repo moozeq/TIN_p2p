@@ -19,6 +19,7 @@
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include "MessageFrames.h"
+#include "SendFileTcp.h"
 
 NodeInfo* NetMainThread::nodeInfo;
 
@@ -89,23 +90,6 @@ ssize_t NetMainThread::setAndReceiveInfoMsgUDP(unsigned timeout, InfoMessage * m
 	return recv_len;
 }
 
-void NetMainThread::sendFile(InfoMessage* msg) {
-	size_t ownerId = NetMainThread::getNodeInfo()->getOwnerId(msg->hash);
-	std::string fileStr;
-	std::ifstream file(msg->hash, std::ios::in | std::ios::binary);
-	if (!file) {
-		std::cout << "Couldn't open file" << std::endl;
-		return;
-	}
-	file.seekg(0, std::ios::end); //how big is file
-	fileStr.reserve(file.tellg());
-	file.seekg(0, std::ios::beg);
-
-	fileStr.assign((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>()); //copy file to string
-
-	NetUtils::sendFileTCP(msg->hash, &fileStr, ownerId, msg->firstField);
-}
-
 void NetMainThread::receiveNetworkMessages(void) {
 	std::cout << "Net Main Thread's waiting for requests..." << std::endl;
 	InfoMessage * msg = new InfoMessage();
@@ -127,7 +111,10 @@ void NetMainThread::receiveNetworkMessages(void) {
 			break;
 		case 300:
 		case 301:
-			sendFile(msg);
+			pthread_t thread;
+			Command* command = new SendFileTcp(msg);
+			pthread_create(&thread, NULL, Command::commandExeWrapper, static_cast<void *>(command));
+			pthread_detach(thread);
 			break;
 		}
 	}

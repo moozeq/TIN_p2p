@@ -82,7 +82,7 @@ void AddFile::execute(void)
 			 NetMainThread::getNodeInfo()->addNewFileEntry(mdString, ownerId);
 		 }
 		 else 												//file in different node
-			 NetUtils::sendFileTCP(mdString, &fileStr, ownerId, fileNodeId);
+			 NetUtils::sendFileTCP(mdString, &fileStr, ownerId, fileNodeId, 304);
 	}
 	else {
 		cout << "Couldn't add new file" << endl;
