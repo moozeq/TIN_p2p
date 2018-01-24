@@ -49,7 +49,7 @@ private:
 	std::map<size_t, struct in_addr> nodeMap;
 	std::map<std::string, size_t> nodeFiles;	// <file hash, owner id>
 	bool connected;
-	std::mutex nodeFilesMtx;
+	std::mutex nodeInfoMtx;
 };
 
 
