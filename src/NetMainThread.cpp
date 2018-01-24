@@ -103,6 +103,13 @@ void NetMainThread::receiveNetworkMessages(void) {
 			break;
 		case 101:
 		case 103:
+		{
+			pthread_t thread;
+			Command * sendFilesTable = new FilesTableSend(commonSocketAddrIn.sin_addr);
+			pthread_create(&thread, 0, Command::commandExeWrapper, static_cast<void *>(sendFilesTable));
+			pthread_detach(thread);
+			break;
+		}
 		case 203:
 			nodeInfo->addNewNode(commonSocketAddrIn.sin_addr);
 			break;
@@ -164,7 +171,7 @@ int NetMainThread::init(void)
 	std::cout<<"Sent request - joining network, opcode = " << msg->opcode <<std::endl;
 	close(commonSocketFd); //close udp socket for broadcast
 
-	//receive udp socket
+	//receive udp socketjak
 	std::cout<<"Waiting for response within " << maxTimeToJoinP2P << " seconds" <<std::endl;
 	if (setAndReceiveInfoMsgUDP(maxTimeToJoinP2P, msg) < 0)
 		buildNetwork();

@@ -50,3 +50,10 @@ void NodeInfo::callForEachNode(std::function<void (struct in_addr *)> callback)
 	for(auto & addr : nodeMap)
 		callback(&(addr.second));
 }
+
+void NodeInfo::callForEachFile(std::function<void (std::string, size_t)> callback)
+{
+	std::unique_lock<std::mutex> uLock(nodeFilesMtx);
+	for(auto & file : nodeFiles)
+		callback(file.first, file.second);
+}

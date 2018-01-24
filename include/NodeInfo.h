@@ -39,12 +39,13 @@ public:
 	NodeInfo(size_t _nodeId = 0, size_t _nodeCnt = 0) :
 		nodeId(_nodeId), nodeCnt(_nodeCnt), connected(false){}
 	void callForEachNode(std::function<void (struct in_addr *)>);
+	void callForEachFile(std::function<void (std::string, size_t)>);
 
 private:
 	size_t nodeId;
 	size_t nodeCnt;
 	std::map<size_t, struct in_addr> nodeMap;
-	std::map<std::string, size_t> nodeFiles;	// <file hash, file id>
+	std::map<std::string, size_t> nodeFiles;	// <file hash, owner id>
 	bool connected;
 	std::mutex nodeFilesMtx;
 };

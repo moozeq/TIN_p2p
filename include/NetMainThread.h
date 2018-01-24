@@ -9,6 +9,7 @@
 #include "MessageFrames.h"
 #include "NetUtils.h"
 #include "TcpMainService.h"
+#include "FilesTableSend.h"
 
 class NetMainThread: public Command
 {

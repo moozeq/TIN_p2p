@@ -16,8 +16,9 @@ LIB = -lssl -lcrypto
 # Project files
 #
 SRCS = $(SRC_DIR)/TIN_p2p.cpp $(SRC_DIR)/NodeInfo.cpp $(SRC_DIR)/NetMainThread.cpp \
- $(SRC_DIR)/MessageFrames.cpp $(SRC_DIR)/NetUtils.cpp $(SRC_DIR)/TcpMainService.cpp $(SRC_DIR)/FilesTableReceive.cpp \
- $(SRC_DIR)/ReceiveFileTcp.cpp $(SRC_DIR)/AddFile.cpp $(SRC_DIR)/ListFilesRequest.cpp
+ $(SRC_DIR)/MessageFrames.cpp $(SRC_DIR)/NetUtils.cpp $(SRC_DIR)/TcpMainService.cpp \
+ $(SRC_DIR)/FilesTableReceive.cpp $(SRC_DIR)/ReceiveFileTcp.cpp $(SRC_DIR)/AddFile.cpp \
+ $(SRC_DIR)/ListFilesRequest.cpp $(SRC_DIR)/ListFilesRequest.cpp $(SRC_DIR)/FilesTableSend.cpp
 
 #
 # Object files
