@@ -7,12 +7,13 @@
 class AddFile: public Command
 {
 public:
-	std::string param;
 	AddFile(std::string _param) : param(_param) {}
 	virtual ~AddFile() {}
 
 	void execute(void);
 	bool reqSeparateThread(void) {return true;}
+private:
+	std::string param;
 };
 
 #endif /* ADDNODE_H_ */

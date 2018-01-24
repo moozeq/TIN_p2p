@@ -32,31 +32,6 @@ void ptDie(std::string s)
     pthread_exit((void*)nullptr);
 }
 
-void sendFileTCP(string hash, string* stringFile, size_t nodeId) {
-	int sockfd = 0;
-	struct sockaddr_in serv_addr;
-
-	if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-		ptDie("socket");
-
-	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_port = htons(NetMainThread::port);
-	serv_addr.sin_addr = NetMainThread::getNodeInfo()->getNodeIP(nodeId);
-
-	//inet_pton(AF_INET, "192.168.56.101", &serv_addr.sin_addr); //test
-	if(connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
-		ptDie("connect");
-
-	size_t opcode = 304;
-	size_t ownerId = nodeId;
-	write(sockfd, &opcode, sizeof(size_t));
-	write(sockfd, hash.c_str(), hash.size() + 1);
-	write(sockfd, &ownerId, sizeof(size_t));
-	write(sockfd, stringFile->c_str(), stringFile->size());
-
-	close(sockfd);
-}
-
 void AddFile::execute(void)
 {
 	string fileStr;
@@ -75,17 +50,27 @@ void AddFile::execute(void)
 	unsigned char digest[16];
 	MD5((unsigned char*)fileStr.c_str(), fileStr.size(), (unsigned char*)&digest);
 
-	string mdString(32, 'x');
-	for(int i = 0; i < 16; i++) //convert to string
-		ssMD5 << hex << (int)digest[i];
+	string mdString;
+	static const char hexchars[] = "0123456789abcdef";
+	for (int i = 0; i < 16; i++) //convert to string
+	{
+	    unsigned char b = digest[i];
+	    char hex[3];
 
-	mdString = ssMD5.str();
+	    hex[0] = hexchars[b >> 4];
+	    hex[1] = hexchars[b & 0xF];
+	    hex[2] = 0;
+
+	    mdString.append(hex);
+	}
+
 	cout << "File hash: " << mdString << endl;
 
 	//sendFileTCP(mdString, &fileStr, 0);
 	NodeInfo* nodeInfo = NetMainThread::getNodeInfo();
 	if (nodeInfo != nullptr) {
 		size_t fileNodeId = calcNodeId(mdString);
+		size_t ownerId = NetMainThread::getNodeInfo()->getNodeId();
 		 if (nodeInfo->getNodeId() == fileNodeId){ 			//file in this node
 			 std::ofstream file(mdString.c_str(), std::ios::out | std::ios::binary);
 			 	if (!file) {
@@ -94,10 +79,10 @@ void AddFile::execute(void)
 			 	}
 			 file << fileStr;
 			 file.close();
-			 NetMainThread::getNodeInfo()->addNewFileEntry(mdString, fileNodeId);
+			 NetMainThread::getNodeInfo()->addNewFileEntry(mdString, ownerId);
 		 }
 		 else 												//file in different node
-			 sendFileTCP(mdString, &fileStr, fileNodeId);
+			 NetUtils::sendFileTCP(mdString, &fileStr, ownerId, fileNodeId, 304);
 	}
 	else {
 		cout << "Couldn't add new file" << endl;

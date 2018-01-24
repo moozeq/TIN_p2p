@@ -6,6 +6,9 @@
 #include <pthread.h>
 #include <iostream>
 #include <errno.h>
+#include <string>
+#include <sstream>
+#include <fstream>
 #include <unistd.h>
 #include <sys/uio.h>
 #include <netdb.h>
@@ -15,7 +18,8 @@
 #include <net/if.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
-#include "../include/MessageFrames.h"
+#include "MessageFrames.h"
+#include "SendFileTcp.h"
 
 NodeInfo* NetMainThread::nodeInfo;
 
@@ -97,8 +101,7 @@ void NetMainThread::receiveNetworkMessages(void) {
 			msg->firstField = nodeInfo->getNodeCnt();
 			msg->secondField = nodeInfo->getNodeId();
 			msg->thirdField = nodeInfo->getNodeCnt();
-
-			setAndSendInfoMsgUDP(msg);
+			NetUtils::sendInfoMsgUDP(msg, commonSocketAddrIn.sin_addr);
 			close(commonSocketFd);
 			break;
 		case 101:
@@ -107,7 +110,12 @@ void NetMainThread::receiveNetworkMessages(void) {
 			nodeInfo->addNewNode(commonSocketAddrIn.sin_addr);
 			break;
 		case 300:
-		case 301: break;
+		case 301:
+			pthread_t thread;
+			Command* command = new SendFileTcp(msg);
+			pthread_create(&thread, NULL, Command::commandExeWrapper, static_cast<void *>(command));
+			pthread_detach(thread);
+			break;
 		}
 	}
 	delete msg;

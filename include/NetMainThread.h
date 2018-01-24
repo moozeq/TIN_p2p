@@ -24,6 +24,7 @@ public:
 	void buildNetwork(void);
 	void setAndSendInfoMsgUDP(InfoMessage * msg);
 	ssize_t setAndReceiveInfoMsgUDP(unsigned timeout, InfoMessage * msg);
+	void sendFile(InfoMessage* msg);
 	void receiveNetworkMessages(void);
 	void parseMsg(InfoMessage * msg);
 	void joinNetwork(InfoMessage * req);
@@ -35,7 +36,7 @@ private:
 	int commonSocketFd;
 	struct sockaddr_in commonSocketAddrIn;
 
-	const unsigned maxTimeToJoinP2P = 2;
+	const unsigned maxTimeToJoinP2P = 10;
 };
 
 #endif /* SRC_NETMAINTHREAD_H_ */
