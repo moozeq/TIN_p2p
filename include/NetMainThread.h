@@ -37,7 +37,7 @@ private:
 	int commonSocketFd;
 	struct sockaddr_in commonSocketAddrIn;
 
-	const unsigned maxTimeToJoinP2P = 20;
+	const unsigned maxTimeToJoinP2P = 2;
 };
 
 #endif /* SRC_NETMAINTHREAD_H_ */
