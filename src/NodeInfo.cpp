@@ -57,3 +57,7 @@ void NodeInfo::callForEachFile(std::function<void (std::string)> callback)
 	for(auto & file : nodeFiles)
 		callback(file.first);
 }
+
+size_t NodeInfo::getOwnerId(std::string hash) {
+	return nodeFiles.find(hash)->second;
+}

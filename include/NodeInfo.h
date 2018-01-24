@@ -25,6 +25,7 @@ public:
 	void addNewNode(struct in_addr nodeIP);
 	void removeNode(size_t nodeId);
 	struct in_addr getNodeIP(size_t nodeId);
+	size_t getOwnerId(std::string hash);
 	void setNodeIdCnt(size_t _nodeId, size_t _nodeCnt) {
 		nodeId = _nodeId;
 		nodeCnt = _nodeCnt;

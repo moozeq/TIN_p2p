@@ -4,6 +4,7 @@
 #include "NodeInfo.h"
 #include "NetMainThread.h"
 #include "ListFilesRequest.h"
+#include "GetFile.h"
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -15,9 +16,10 @@ Command * newTerminalCommand(std::string textCommand)
 	std::string comm, param;
 	std::stringstream ss(textCommand);
 	ss >> comm >> param;
-	if(comm == "add") {
+	if(comm == "add")
 		outCommand = new AddFile(param);
-	}
+	else if(comm == "get")
+		outCommand = new GetFile(param);
 	else if(textCommand == "join")
 		outCommand = new NetMainThread();
 	else if (textCommand == "exit")
@@ -39,7 +41,7 @@ int main(void)
 	while(1)
 	{
 		std::string userCommand;
-		std::cout << "Enter command (join, add, exit):\n> ";
+		std::cout << "Enter command (join, add, get, exit):\n> ";
 		getline(std::cin, userCommand);
 		Command * command = newTerminalCommand(userCommand);
 		if(command != nullptr)

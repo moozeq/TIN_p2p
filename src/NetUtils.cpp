@@ -1,5 +1,5 @@
 #include "NetUtils.h"
-
+#include "NetMainThread.h"
 #include <stdio.h>
 #include <string.h> /* for strncpy */
 #include <sys/types.h>
@@ -13,6 +13,31 @@
 #include <unistd.h>
 #include <linux/if_link.h>
 #include <iostream>
+
+bool NetUtils::sendFileTCP(std::string hash, std::string* stringFile, size_t ownerId, size_t fileNodeId) {
+	int sockfd = 0;
+	struct sockaddr_in serv_addr;
+
+	if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+		return false;
+
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_port = htons(NetMainThread::port);
+	serv_addr.sin_addr = NetMainThread::getNodeInfo()->getNodeIP(fileNodeId);
+
+	if(connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
+		return false;
+
+	size_t opcode = 304;
+	write(sockfd, &opcode, sizeof(size_t));
+	write(sockfd, hash.c_str(), hash.size() + 1);
+	write(sockfd, &ownerId, sizeof(size_t));
+	write(sockfd, stringFile->c_str(), stringFile->size());
+
+	close(sockfd);
+	return true;
+}
+
 
 std::string NetUtils::getSelfIpAddress(void)
 {

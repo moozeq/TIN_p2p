@@ -6,6 +6,9 @@
 #include <pthread.h>
 #include <iostream>
 #include <errno.h>
+#include <string>
+#include <sstream>
+#include <fstream>
 #include <unistd.h>
 #include <sys/uio.h>
 #include <netdb.h>
@@ -86,6 +89,23 @@ ssize_t NetMainThread::setAndReceiveInfoMsgUDP(unsigned timeout, InfoMessage * m
 	return recv_len;
 }
 
+void sendFile(InfoMessage* msg) {
+	size_t ownerId = NetMainThread::getNodeInfo()->getOwnerId(msg->hash);
+	std::string fileStr;
+	std::ifstream file(msg->hash, std::ios::in | std::ios::binary);
+	if (!file) {
+		std::cout << "Couldn't open file" << std::endl;
+		return;
+	}
+	file.seekg(0, std::ios::end); //how big is file
+	fileStr.reserve(file.tellg());
+	file.seekg(0, std::ios::beg);
+
+	fileStr.assign((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>()); //copy file to string
+
+	NetUtils::sendFileTCP(msg->hash, &fileStr, ownerId, msg->firstField);
+}
+
 void NetMainThread::receiveNetworkMessages(void) {
 	std::cout << "Net Main Thread's waiting for requests..." << std::endl;
 	InfoMessage * msg = new InfoMessage();
@@ -97,7 +117,6 @@ void NetMainThread::receiveNetworkMessages(void) {
 			msg->firstField = nodeInfo->getNodeCnt();
 			msg->secondField = nodeInfo->getNodeId();
 			msg->thirdField = nodeInfo->getNodeCnt();
-
 			setAndSendInfoMsgUDP(msg);
 			close(commonSocketFd);
 			break;
@@ -114,7 +133,9 @@ void NetMainThread::receiveNetworkMessages(void) {
 			nodeInfo->addNewNode(commonSocketAddrIn.sin_addr);
 			break;
 		case 300:
-		case 301: break;
+		case 301:
+			sendFile(msg);
+			break;
 		}
 	}
 	delete msg;
