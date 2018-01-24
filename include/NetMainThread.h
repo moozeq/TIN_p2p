@@ -2,11 +2,13 @@
 #define SRC_NETMAINTHREAD_H_
 
 #include "Command.h"
-#include "FileTransfer.h"
 #include "NodeInfo.h"
-#include "InfoMessage.h"
 #include <string>
 #include "NetUtils.h"
+
+#include "MessageFrames.h"
+#include "NetUtils.h"
+#include "TcpMainService.h"
 
 class NetMainThread: public Command
 {
@@ -26,9 +28,10 @@ public:
 	void parseMsg(InfoMessage * msg);
 	void joinNetwork(InfoMessage * req);
 
+	static const unsigned port = 8888;
+
 private:
 	std::string broadcastAddress;
-	const unsigned port = 8888;
 	int commonSocketFd;
 	struct sockaddr_in commonSocketAddrIn;
 };

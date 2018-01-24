@@ -6,7 +6,6 @@
 #include <pthread.h>
 #include <iostream>
 #include <errno.h>
-#include "InfoMessage.h"
 #include <unistd.h>
 #include <sys/uio.h>
 #include <netdb.h>
@@ -16,13 +15,14 @@
 #include <net/if.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
+#include "../include/MessageFrames.h"
 
 NodeInfo* NetMainThread::nodeInfo;
 
 void die(std::string s)
 {
     perror(s.c_str());
-    exit(1);
+    pthread_exit((void*)nullptr);
 }
 
 NodeInfo * NetMainThread::getNodeInfo(void){
@@ -48,7 +48,7 @@ void NetMainThread::setAndSendInfoMsgUDP(InfoMessage * msg) {
 	commonSocketAddrIn.sin_port = htons(port);
 
 	if (inet_aton(broadcastAddress.c_str() , &commonSocketAddrIn.sin_addr) == 0)
-		die("inet_aton() failed\n");
+		die("inet_aton");
 	if (sendto(commonSocketFd, msg, sizeof(*msg), 0, (struct sockaddr*) &commonSocketAddrIn, slen) < 0)
 		die("sendto");
 }
@@ -178,11 +178,20 @@ int NetMainThread::init(void)
 
 void NetMainThread::execute(void)
 {
+	pthread_t thread;
+	Command * command;
+
 	if(getNodeInfo() != nullptr && getNodeInfo()->isConnected()){
 		std::cout<<"Already connected to network!\n";
 		pthread_exit(NULL);
 	}
 	init();
+
+	// Create Main tcp listener thread
+	command = new TcpMainService();
+	pthread_create(&thread, NULL, Command::commandExeWrapper, static_cast<void *>(command));
+	pthread_detach(thread);
+
 	receiveNetworkMessages();
 }
 

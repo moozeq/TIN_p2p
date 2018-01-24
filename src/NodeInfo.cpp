@@ -1,12 +1,12 @@
 #include "NodeInfo.h"
 
-void NodeInfo::addNewFile(size_t hash, size_t nodeId)
+void NodeInfo::addNewFileEntry(std::string hash, size_t nodeId)
 {
 	std::unique_lock<std::mutex> uLock(nodeFilesMtx);
-	nodeFiles.insert(std::pair<size_t, size_t>(hash, nodeId));
+	nodeFiles.insert(std::pair<std::string, size_t>(hash, nodeId));
 }
 
-void NodeInfo::removeFile(size_t hash)
+void NodeInfo::removeFile(std::string hash)
 {
 	std::unique_lock<std::mutex> uLock(nodeFilesMtx);
 	auto it = nodeFiles.find(hash);

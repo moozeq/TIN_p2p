@@ -2,7 +2,7 @@
 CC     = g++
 
 # Include directory
-INC = -I./include
+INC = -I./include -L/usr/lib
 
 # Source files directory
 SRC_DIR = src
@@ -10,10 +10,14 @@ SRC_DIR = src
 # Compiler flags
 CFLAGS = -Wall $(INC) -std=c++11 -pthread
 
+# Linker flags
+LIB = -lssl -lcrypto
 #
 # Project files
 #
-SRCS = $(SRC_DIR)/TIN_p2p.cpp $(SRC_DIR)/NodeInfo.cpp $(SRC_DIR)/FileTransfer.cpp $(SRC_DIR)/AddNode.cpp $(SRC_DIR)/NetMainThread.cpp $(SRC_DIR)/InfoMessage.cpp $(SRC_DIR)/NetUtils.cpp
+SRCS = $(SRC_DIR)/TIN_p2p.cpp $(SRC_DIR)/NodeInfo.cpp $(SRC_DIR)/NetMainThread.cpp \
+ $(SRC_DIR)/MessageFrames.cpp $(SRC_DIR)/NetUtils.cpp $(SRC_DIR)/TcpMainService.cpp $(SRC_DIR)/FilesTableReceive.cpp \
+ $(SRC_DIR)/ReceiveFileTcp.cpp $(SRC_DIR)/ReceiveTCP.cpp $(SRC_DIR)/AddFile.cpp
 
 #
 # Object files
@@ -48,7 +52,7 @@ all: prep debug
 debug: $(DBGEXE)
 
 $(DBGEXE): $(DBGOBJS)
-	$(CC) $(CFLAGS) $(DBGCFLAGS) -o $(DBGEXE) $^
+	$(CC) $(CFLAGS) $(DBGCFLAGS) -o $(DBGEXE) $^ $(LIB)
 
 $(DBGDIR)/%.o: %.cpp
 	$(CC) -c $(CFLAGS) $(DBGCFLAGS) -o $@ $<
@@ -59,7 +63,7 @@ $(DBGDIR)/%.o: %.cpp
 release: $(RELEXE)
 
 $(RELEXE): $(RELOBJS)
-	$(CC) $(CFLAGS) $(RELCFLAGS) -o $(RELEXE) $^
+	$(CC) $(CFLAGS) $(RELCFLAGS) -o $(RELEXE) $^ $(LIB)
 
 
 $(RELDIR)/%.o: %.cpp
