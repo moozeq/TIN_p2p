@@ -22,7 +22,7 @@ Command * newTerminalCommand(std::string textCommand)
 		outCommand = new NetMainThread();
 	else if (textCommand == "exit")
 		exit(0);
-	else if(textCommand == "join")
+	else if(textCommand == "list")
 		outCommand = new ListFilesRequest();
 	else
 		outCommand = nullptr;
