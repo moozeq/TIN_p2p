@@ -15,7 +15,7 @@
 #include <net/if.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
-#include "../include/MessageFrames.h"
+#include "MessageFrames.h"
 
 NodeInfo* NetMainThread::nodeInfo;
 

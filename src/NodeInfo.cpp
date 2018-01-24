@@ -43,3 +43,10 @@ void NodeInfo::setNode(size_t nodeId, struct in_addr nodeIP) { //change node IP 
 	}
 	it->second = nodeIP;
 }
+
+void NodeInfo::callForEachNode(std::function<void (struct in_addr *)> callback)
+{
+	std::unique_lock<std::mutex> uLock(nodeFilesMtx);
+	for(auto & addr : nodeMap)
+		callback(&(addr.second));
+}
