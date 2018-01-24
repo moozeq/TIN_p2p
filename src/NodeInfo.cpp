@@ -2,13 +2,13 @@
 
 void NodeInfo::addNewFileEntry(std::string hash, size_t nodeId)
 {
-	std::unique_lock<std::mutex> uLock(nodeFilesMtx);
+	std::unique_lock<std::mutex> uLock(nodeInfoMtx);
 	nodeFiles.insert(std::pair<std::string, size_t>(hash, nodeId));
 }
 
 void NodeInfo::removeFile(std::string hash)
 {
-	std::unique_lock<std::mutex> uLock(nodeFilesMtx);
+	std::unique_lock<std::mutex> uLock(nodeInfoMtx);
 	auto it = nodeFiles.find(hash);
 	nodeFiles.erase(it);
 }
@@ -46,14 +46,14 @@ void NodeInfo::setNode(size_t nodeId, struct in_addr nodeIP) { //change node IP 
 
 void NodeInfo::callForEachNode(std::function<void (struct in_addr *)> callback)
 {
-	std::unique_lock<std::mutex> uLock(nodeFilesMtx);
+	std::unique_lock<std::mutex> uLock(nodeInfoMtx);
 	for(auto & addr : nodeMap)
 		callback(&(addr.second));
 }
 
 void NodeInfo::callForEachFile(std::function<void (std::string)> callback)
 {
-	std::unique_lock<std::mutex> uLock(nodeFilesMtx);
+	std::unique_lock<std::mutex> uLock(nodeInfoMtx);
 	for(auto & file : nodeFiles)
 		callback(file.first);
 }
