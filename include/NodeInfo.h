@@ -12,6 +12,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <fstream>
+#include <functional>
 
 /**
  * 	@brief	Struct NodeInfo which describes each node
@@ -39,6 +40,8 @@ public:
 	size_t getNodeMapSize() {return nodeMap.size();}
 	NodeInfo(size_t _nodeId = 0, size_t _nodeCnt = 0) :
 		nodeId(_nodeId), nodeCnt(_nodeCnt), connected(false){}
+	void callForEachNode(std::function<void (struct in_addr *)>);
+	void callForEachFile(std::function<void (std::string)>);
 
 private:
 	size_t nodeId;
@@ -46,7 +49,7 @@ private:
 	std::map<size_t, struct in_addr> nodeMap;
 	std::map<std::string, size_t> nodeFiles;	// <file hash, owner id>
 	bool connected;
-	std::mutex nodeFilesMtx;
+	std::mutex nodeInfoMtx;
 };
 
 
