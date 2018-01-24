@@ -14,6 +14,35 @@
 #include <linux/if_link.h>
 #include <iostream>
 
+bool NetUtils::sendInfoMsgUDP(InfoMessage * msg, struct in_addr nodeAddr) {
+	int commonSocketFd;
+	struct sockaddr_in commonSocketAddrIn;
+	socklen_t slen = sizeof(commonSocketAddrIn);
+
+	//socket
+	if ((commonSocketFd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
+		return false;
+
+	int option = 1;
+	if (setsockopt(commonSocketFd,SOL_SOCKET,SO_REUSEADDR, &option, sizeof(option)) < 0)
+		return false;
+
+	memset((char *) &commonSocketAddrIn, 0, sizeof(commonSocketAddrIn));
+	commonSocketAddrIn.sin_family = AF_INET;
+	commonSocketAddrIn.sin_port = htons(NetMainThread::port);
+	commonSocketAddrIn.sin_addr = nodeAddr;
+
+	if (sendto(commonSocketFd, msg, sizeof(*msg), 0, (struct sockaddr*) &commonSocketAddrIn, slen) < 0)
+		return false;
+
+	close(commonSocketFd);
+	return true;
+}
+
+bool NetUtils::sendInfoMsgUDP(InfoMessage * msg, size_t nodeId) {
+	return NetUtils::sendInfoMsgUDP(msg, NetMainThread::getNodeInfo()->getNodeIP(nodeId));
+}
+
 bool NetUtils::sendFileTCP(std::string hash, std::string* stringFile, size_t ownerId, size_t fileNodeId) {
 	int sockfd = 0;
 	struct sockaddr_in serv_addr;

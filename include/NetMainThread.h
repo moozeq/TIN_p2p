@@ -25,6 +25,7 @@ public:
 	void buildNetwork(void);
 	void setAndSendInfoMsgUDP(InfoMessage * msg);
 	ssize_t setAndReceiveInfoMsgUDP(unsigned timeout, InfoMessage * msg);
+	void sendFile(InfoMessage* msg);
 	void receiveNetworkMessages(void);
 	void parseMsg(InfoMessage * msg);
 	void joinNetwork(InfoMessage * req);
