@@ -44,16 +44,16 @@ void sendFileTCP(string hash, string* stringFile, size_t nodeId) {
 	serv_addr.sin_port = htons(PORT);
 	serv_addr.sin_addr = NetMainThread::getNodeInfo()->getNodeIP(nodeId);
 
-	//inet_pton(AF_INET, "192.168.0.18", &serv_addr.sin_addr); //test
+	//inet_pton(AF_INET, "192.168.56.101", &serv_addr.sin_addr); //test
 	if(connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
 		ptDie("connect");
 
-	size_t opcode = 301;
+	size_t opcode = 304;
 	size_t ownerId = nodeId;
 	write(sockfd, &opcode, sizeof(size_t));
 	write(sockfd, hash.c_str(), hash.size() + 1);
 	write(sockfd, &ownerId, sizeof(size_t));
-	write(sockfd, stringFile->c_str(), stringFile->size() + 1);
+	write(sockfd, stringFile->c_str(), stringFile->size());
 
 	close(sockfd);
 }

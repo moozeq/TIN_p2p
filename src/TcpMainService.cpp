@@ -28,19 +28,21 @@ Command * TcpMainService::getCommand(size_t opcode, int socketFd)
 void TcpMainService::tcpServiceLoop(void)
 {
 	int sock, msgsock, readBytes;
-	struct sockaddr_in server;
+	struct sockaddr_in server, client;
 	size_t opcode;
+
 	sock = socket(AF_INET, SOCK_STREAM, 0);
-	if (sock == -1) {
+	if (sock < 0) {
 		perror("opening stream socket");
 		exit(1);
 	}
 
 	// Bind address to the socket
+	memset(&server, 0, sizeof(server));
 	server.sin_family = AF_INET;
 	server.sin_addr.s_addr = INADDR_ANY;
 	server.sin_port = htons(NetMainThread::port);
-	if (bind(sock, (struct sockaddr *) &server, sizeof server) == -1){
+	if (bind(sock, (struct sockaddr *) &server, sizeof server) < 0){
 		perror("binding stream socket");
 		exit(1);
 	}
@@ -49,9 +51,11 @@ void TcpMainService::tcpServiceLoop(void)
 
 	Command * command;
 	while(true) {
-		msgsock = accept(sock,(struct sockaddr *) 0,(unsigned *) 0);
-		if (msgsock == -1 )
+		unsigned addrlen = sizeof(client);
+		if((msgsock = accept(sock,(struct sockaddr *)&client,&addrlen)) < 0) {
 			perror("accept");
+			break;
+		}
 		else
 		{
 			memset(&opcode, 0, sizeof(opcode));

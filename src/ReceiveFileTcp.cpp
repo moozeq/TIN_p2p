@@ -7,15 +7,15 @@ void ReceiveFileTcp::execute(void)
 	char hash[33];
 
 	int readBytes;
-	if ((readBytes = read(socketFd, hash, 33)) == -1) //read hash
+	if ((readBytes = read(socketFd, hash, 33)) < 0) //read hash
 		perror("reading stream message");
-	if ((readBytes = read(socketFd, &ownerId, sizeof(size_t))) == -1) //read ownerId
+	if ((readBytes = read(socketFd, &ownerId, sizeof(size_t))) < 0) //read ownerId
 		perror("reading stream message");
 
-	std::ofstream newFile(hash, std::ios::out | std::ios::binary);
+	std::ofstream newFile(hash, std::ios::out);
 	do {
 		memset(buf, 0, sizeof(buf));
-		if ((readBytes = read(socketFd, buf, 1024)) == -1)
+		if ((readBytes = read(socketFd, buf, 1024)) < 0)
 			perror("reading stream message");
 		if (readBytes != 0)
 			newFile.write(buf, readBytes);
