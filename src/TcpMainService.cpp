@@ -27,7 +27,7 @@ Command * TcpMainService::getCommand(size_t opcode, int socketFd)
 
 void TcpMainService::tcpServiceLoop(void)
 {
-	int sock, msgsock, readBytes;
+	int sock, readBytes;
 	struct sockaddr_in server, client;
 	size_t opcode;
 
@@ -51,6 +51,7 @@ void TcpMainService::tcpServiceLoop(void)
 
 	Command * command;
 	while(true) {
+		int msgsock;
 		unsigned addrlen = sizeof(client);
 		if((msgsock = accept(sock,(struct sockaddr *)&client,&addrlen)) < 0) {
 			perror("accept");
@@ -79,7 +80,6 @@ void TcpMainService::tcpServiceLoop(void)
 				}
 			}
 		}
-		close(msgsock);	// It is not needed in parent thread anymore
 	}
 	close(sock);
 }
