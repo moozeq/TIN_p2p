@@ -14,6 +14,7 @@ void NodeInfo::removeFile(std::string hash)
 }
 
 void NodeInfo::addNewNode(struct in_addr nodeIP) {
+	std::unique_lock<std::mutex> uLock(nodeInfoMtx);
 	nodeMap.insert(std::pair<size_t,struct in_addr>(nodeCnt, nodeIP));
 	std::cout << "Added new node:" << std::endl
 				<< "\tNode ID: " << nodeCnt << std::endl
@@ -22,10 +23,12 @@ void NodeInfo::addNewNode(struct in_addr nodeIP) {
 }
 
 void NodeInfo::removeNode(size_t nodeId) {
+	std::unique_lock<std::mutex> uLock(nodeInfoMtx);
 	nodeMap.erase(nodeId);
 }
 
 struct in_addr NodeInfo::getNodeIP(size_t nodeId) {
+	std::unique_lock<std::mutex> uLock(nodeInfoMtx);
 	std::map<size_t,struct in_addr>::iterator it = nodeMap.find(nodeId);
 	if (it == nodeMap.end()) {
 		struct in_addr tmp;
@@ -36,6 +39,7 @@ struct in_addr NodeInfo::getNodeIP(size_t nodeId) {
 }
 
 void NodeInfo::setNode(size_t nodeId, struct in_addr nodeIP) { //change node IP or create new entry
+	std::unique_lock<std::mutex> uLock(nodeInfoMtx);
 	std::map<size_t,struct in_addr>::iterator it = nodeMap.find(nodeId);
 	if (it == nodeMap.end()) {
 		nodeMap.insert(std::pair<size_t,struct in_addr>(nodeId, nodeIP));
@@ -59,5 +63,6 @@ void NodeInfo::callForEachFile(std::function<void (std::string)> callback)
 }
 
 size_t NodeInfo::getOwnerId(std::string hash) {
+	std::unique_lock<std::mutex> uLock(nodeInfoMtx);
 	return nodeFiles.find(hash)->second;
 }
