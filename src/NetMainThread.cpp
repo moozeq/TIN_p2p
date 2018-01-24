@@ -165,8 +165,8 @@ int NetMainThread::init(void)
 	close(commonSocketFd); //close udp socket for broadcast
 
 	//receive udp socket
-	std::cout<<"Waiting for response within " << 10 << " seconds" <<std::endl;
-	if (setAndReceiveInfoMsgUDP(10, msg) < 0)
+	std::cout<<"Waiting for response within " << maxTimeToJoinP2P << " seconds" <<std::endl;
+	if (setAndReceiveInfoMsgUDP(maxTimeToJoinP2P, msg) < 0)
 		buildNetwork();
 	else
 		joinNetwork(msg);
