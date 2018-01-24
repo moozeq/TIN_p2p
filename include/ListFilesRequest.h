@@ -32,6 +32,7 @@ public:
 
 	void sendInfoMsgUDP(struct in_addr * in_addr);
 	void execute(void);
+	bool reqSeparateThread(void) {	return true;	};
 private:
 	int commonSocketFd;
 	struct sockaddr_in commonSocketAddrIn;

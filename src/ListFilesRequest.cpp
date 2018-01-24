@@ -21,8 +21,10 @@ void ListFilesRequest::sendInfoMsgUDP(struct in_addr * in_addr)
 void ListFilesRequest::execute(void)
 {
 	//socket
-	if ((commonSocketFd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
+	if ((commonSocketFd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0){
 		deleteSelfAndDie(this, "socket");
+		std::cout<<"List request - socket create - failed..."<<std::endl;
+	}
 
 	memset((char *) &commonSocketAddrIn, 0, sizeof(commonSocketAddrIn));
 	commonSocketAddrIn.sin_family = AF_INET;
