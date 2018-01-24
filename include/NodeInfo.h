@@ -12,6 +12,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <fstream>
+#include <functional>
 
 /**
  * 	@brief	Struct NodeInfo which describes each node
