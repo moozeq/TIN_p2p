@@ -89,7 +89,7 @@ ssize_t NetMainThread::setAndReceiveInfoMsgUDP(unsigned timeout, InfoMessage * m
 	return recv_len;
 }
 
-void sendFile(InfoMessage* msg) {
+void NetMainThread::sendFile(InfoMessage* msg) {
 	size_t ownerId = NetMainThread::getNodeInfo()->getOwnerId(msg->hash);
 	std::string fileStr;
 	std::ifstream file(msg->hash, std::ios::in | std::ios::binary);
@@ -117,7 +117,7 @@ void NetMainThread::receiveNetworkMessages(void) {
 			msg->firstField = nodeInfo->getNodeCnt();
 			msg->secondField = nodeInfo->getNodeId();
 			msg->thirdField = nodeInfo->getNodeCnt();
-			setAndSendInfoMsgUDP(msg);
+			NetUtils::sendInfoMsgUDP(msg, commonSocketAddrIn.sin_addr);
 			close(commonSocketFd);
 			break;
 		case 101:
