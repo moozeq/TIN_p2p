@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "NodeInfo.h"
 #include "NetMainThread.h"
+#include "ListFilesRequest.h"
 #include "GetFile.h"
 #include <iostream>
 #include <string>
@@ -23,6 +24,8 @@ Command * newTerminalCommand(std::string textCommand)
 		outCommand = new NetMainThread();
 	else if (textCommand == "exit")
 		exit(0);
+	else if(textCommand == "list")
+		outCommand = new ListFilesRequest();
 	else
 		outCommand = nullptr;
 	return outCommand;

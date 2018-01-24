@@ -9,6 +9,7 @@
 #include "MessageFrames.h"
 #include "NetUtils.h"
 #include "TcpMainService.h"
+#include "FilesTableSend.h"
 
 class NetMainThread: public Command
 {
@@ -36,7 +37,7 @@ private:
 	int commonSocketFd;
 	struct sockaddr_in commonSocketAddrIn;
 
-	const unsigned maxTimeToJoinP2P = 10;
+	const unsigned maxTimeToJoinP2P = 2;
 };
 
 #endif /* SRC_NETMAINTHREAD_H_ */
