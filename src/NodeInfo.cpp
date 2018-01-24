@@ -51,9 +51,9 @@ void NodeInfo::callForEachNode(std::function<void (struct in_addr *)> callback)
 		callback(&(addr.second));
 }
 
-void NodeInfo::callForEachFile(std::function<void (std::string, size_t)> callback)
+void NodeInfo::callForEachFile(std::function<void (std::string)> callback)
 {
 	std::unique_lock<std::mutex> uLock(nodeFilesMtx);
 	for(auto & file : nodeFiles)
-		callback(file.first, file.second);
+		callback(file.first);
 }

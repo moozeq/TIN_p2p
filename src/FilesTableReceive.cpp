@@ -4,16 +4,18 @@
 
 void FilesTableReceive::execute(void)
 {
-	char buf[1024];
+	const unsigned bufSize = 25*32; // 32 is size of hash (string)
+	char buf[bufSize];
 	size_t filesCount;
 	int readBytes;
 	int fileNumber = 0;
+	std::string tmpHash;
 	if ((readBytes = read(socketFd, &filesCount, sizeof(filesCount))) == -1)
 		perror("reading stream message");
 
 	do {
 		memset(buf, 0, sizeof(buf));
-		if ((readBytes = read(socketFd,buf, 1024)) == -1)
+		if ((readBytes = read(socketFd,buf, bufSize)) == -1)
 			perror("reading stream message");
 		if (readBytes != 0)
 		{
@@ -21,8 +23,9 @@ void FilesTableReceive::execute(void)
 			{
 				for(unsigned i = 0; i < readBytes/sizeof(size_t); ++i)
 				{
+					tmpHash.assign(&buf[i*32], 32);
 					std::cout<<"File " << fileNumber++ <<" id: "
-							<< static_cast<size_t>(buf[i * sizeof(size_t)]) << std::endl;
+							<< tmpHash << std::endl;
 				}
 			}
 			else if(opcode == 303)

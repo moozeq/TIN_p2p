@@ -19,10 +19,9 @@ public:
 	void execute(void);
 	bool reqSeparateThread(void) {	return true;	};
 private:
-	void insertData(std::string hash, size_t ownerId);
+	void insertData(std::string hash);
 	void sendFilesTableTCP(std::string* stringData);
 	std::stringstream fileTableData;
-	char ownerIdCharTable[sizeof(size_t) + 1];
 	struct in_addr targetNodeIP;
 };
 

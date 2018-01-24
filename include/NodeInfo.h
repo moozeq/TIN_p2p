@@ -40,7 +40,7 @@ public:
 	NodeInfo(size_t _nodeId = 0, size_t _nodeCnt = 0) :
 		nodeId(_nodeId), nodeCnt(_nodeCnt), connected(false){}
 	void callForEachNode(std::function<void (struct in_addr *)>);
-	void callForEachFile(std::function<void (std::string, size_t)>);
+	void callForEachFile(std::function<void (std::string)>);
 
 private:
 	size_t nodeId;

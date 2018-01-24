@@ -11,21 +11,18 @@
 FilesTableSend::FilesTableSend(struct in_addr _targetNodeIP)
 {
 	targetNodeIP = _targetNodeIP;
-	ownerIdCharTable[sizeof(fileTableData) - 1] = 0;	// /0
 }
 
-void FilesTableSend::insertData(std::string hash, size_t ownerId)
+void FilesTableSend::insertData(std::string hash)
 {
-	strncpy(ownerIdCharTable, (char *)&ownerId, sizeof(size_t));
-	std::string stringOwnerId(ownerIdCharTable);
-	fileTableData << hash << stringOwnerId;
+	fileTableData << hash;
 }
 
 void FilesTableSend::execute(void)
 {
 	NodeInfo * nodeInfo = NetMainThread::getNodeInfo();
 	nodeInfo->callForEachFile(std::bind(&FilesTableSend::insertData, this,
-			std::placeholders::_1, std::placeholders::_2));
+			std::placeholders::_1));
 	std::string filesData = fileTableData.str();
 	sendFilesTableTCP(&filesData);
 }
