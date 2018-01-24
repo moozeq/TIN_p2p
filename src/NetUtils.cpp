@@ -43,7 +43,7 @@ bool NetUtils::sendInfoMsgUDP(InfoMessage * msg, size_t nodeId) {
 	return NetUtils::sendInfoMsgUDP(msg, NetMainThread::getNodeInfo()->getNodeIP(nodeId));
 }
 
-bool NetUtils::sendFileTCP(std::string hash, std::string* stringFile, size_t ownerId, size_t fileNodeId) {
+bool NetUtils::sendFileTCP(std::string hash, std::string* stringFile, size_t ownerId, size_t fileNodeId, size_t opcode) {
 	int sockfd = 0;
 	struct sockaddr_in serv_addr;
 
@@ -57,7 +57,6 @@ bool NetUtils::sendFileTCP(std::string hash, std::string* stringFile, size_t own
 	if(connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
 		return false;
 
-	size_t opcode = 304;
 	write(sockfd, &opcode, sizeof(size_t));
 	write(sockfd, hash.c_str(), hash.size() + 1);
 	write(sockfd, &ownerId, sizeof(size_t));

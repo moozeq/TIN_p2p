@@ -17,7 +17,8 @@
 class ReceiveFileTcp: public Command
 {
 public:
-	explicit ReceiveFileTcp(size_t _opcode, int _socketFd) : opcode(_opcode), socketFd(_socketFd) {};
+	explicit ReceiveFileTcp(size_t _opcode, int _socketFd) :
+	opcode(_opcode), socketFd(_socketFd) {};
 
 	virtual ~ReceiveFileTcp() {};
 
