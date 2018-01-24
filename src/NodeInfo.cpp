@@ -43,3 +43,7 @@ void NodeInfo::setNode(size_t nodeId, struct in_addr nodeIP) { //change node IP 
 	}
 	it->second = nodeIP;
 }
+
+size_t NodeInfo::getOwnerId(std::string hash) {
+	return nodeFiles.find(hash)->second;
+}

@@ -24,6 +24,7 @@ public:
 	void addNewNode(struct in_addr nodeIP);
 	void removeNode(size_t nodeId);
 	struct in_addr getNodeIP(size_t nodeId);
+	size_t getOwnerId(std::string hash);
 	void setNodeIdCnt(size_t _nodeId, size_t _nodeCnt) {
 		nodeId = _nodeId;
 		nodeCnt = _nodeCnt;
@@ -43,7 +44,7 @@ private:
 	size_t nodeId;
 	size_t nodeCnt;
 	std::map<size_t, struct in_addr> nodeMap;
-	std::map<std::string, size_t> nodeFiles;	// <file hash, file id>
+	std::map<std::string, size_t> nodeFiles;	// <file hash, owner id>
 	bool connected;
 	std::mutex nodeFilesMtx;
 };
