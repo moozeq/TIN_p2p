@@ -103,7 +103,6 @@ void NodeInfo::reconfiguration(size_t newNodeCnt, size_t leavingNodeId, bool isM
 	else //last node
 		removeNode(newNodeCnt);
 
-	std::unique_lock<std::mutex> uLock(nodeFilesMtx);
 	for (auto it = nodeFiles.begin(); it != nodeFiles.end(); ++it) {
 		size_t newNodeId = NetUtils::calcNodeId(it->first, this);
 		if (newNodeId != nodeId || isMe) { //need to send this file || its leaving
