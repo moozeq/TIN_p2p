@@ -16,7 +16,7 @@ class NetMainThread: public Command
 public:
 	static NodeInfo * nodeInfo;
 	NetMainThread() : broadcastAddress(NetUtils::getBroadcastAddress()), commonSocketFd(0), tcpThread(0) {}
-	virtual ~NetMainThread() {}
+	virtual ~NetMainThread() { delete nodeInfo; }
 
 	static NodeInfo * getNodeInfo(void);
 	void execute(void);
