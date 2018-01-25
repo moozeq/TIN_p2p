@@ -51,17 +51,17 @@ void NodeInfo::setNode(size_t nodeId, struct in_addr nodeIP) { //change node IP 
 }
 
 void NodeInfo::removeFiles(size_t ownerId) {
-	std::unique_lock<std::mutex> uLock(nodeInfoMtx);
 	std::map<std::string, size_t>::iterator it;
 
 	for (it = nodeFiles.begin(); it != nodeFiles.end(); ++it) {
-		if (it->second == ownerId)
+		if (it->second == ownerId) {
+			unlink(it->first.c_str());
 			nodeFiles.erase(it);
+		}
 	}
 }
 
-void NodeInfo::changeFilesOwner(size_t oldOwnerId, size_t newOwnerId) {
-	std::unique_lock<std::mutex> uLock(nodeInfoMtx);
+void NodeInfo::changeFilesOwner(size_t newOwnerId, size_t oldOwnerId) {
 	std::map<std::string, size_t>::iterator it;
 
 	for (it = nodeFiles.begin(); it != nodeFiles.end(); ++it) {
@@ -70,32 +70,41 @@ void NodeInfo::changeFilesOwner(size_t oldOwnerId, size_t newOwnerId) {
 	}
 }
 
-void NodeInfo::reconfiguration(size_t newNodeCnt, size_t leavingNodeId) {
-	if (newNodeCnt != (nodeCnt - 1)) {
+void NodeInfo::reconfiguration(size_t newNodeCnt, size_t leavingNodeId, bool isMe) {
+	std::unique_lock<std::mutex> uLock(nodeInfoMtx);
+	if (newNodeCnt != --nodeCnt) {
 		std::cout << "Network's corrupted!" << std::endl;
 		return;
-	} else
-		nodeCnt = newNodeCnt;
-	if (newNodeCnt != leavingNodeId) { //not last node
-		changeFilesOwner(newNodeCnt, leavingNodeId);
-		setNode(leavingNodeId, getNodeIP(newNodeCnt));
 	}
+	if (nodeCnt == 0 && isMe) { //last node in network
+		removeFiles(0);
+		return;
+	}
+	removeFiles(leavingNodeId); //remove files from leaving node
 
-	std::unique_lock<std::mutex> uLock(nodeInfoMtx);
+	if (newNodeCnt != leavingNodeId) { //not last node
+		setNode(leavingNodeId, getNodeIP(newNodeCnt)); //swap nodes
+		removeNode(newNodeCnt);
+		changeFilesOwner(leavingNodeId, newNodeCnt);
+
+		if (nodeId == newNodeCnt) //this was last added node
+			nodeId = leavingNodeId;
+	}
+	else //last node
+		removeNode(newNodeCnt);
+
 	std::map<std::string, size_t>::iterator it;
-
 	for (it = nodeFiles.begin(); it != nodeFiles.end(); ++it) {
 		size_t newNodeId = calcNodeId(it->first);
-		if (newNodeId != nodeId || leavingNodeId == nodeId) { //need to send this file
+		if (newNodeId != nodeId || isMe) { //need to send this file || its leaving
 			InfoMessage* msg = new InfoMessage(304, newNodeId, it->first);
 			pthread_t thread;
 			Command* command = new SendFileTcp(msg);
 			pthread_create(&thread, NULL, Command::commandExeWrapper, static_cast<void *>(command));
 			pthread_join(thread, 0);
-			nodeFiles.erase(it);
 			unlink(it->first.c_str());
+			nodeFiles.erase(it);
 			delete msg;
-			delete command;
 		}
 	}
 }

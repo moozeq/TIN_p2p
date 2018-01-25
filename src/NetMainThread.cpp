@@ -110,10 +110,11 @@ void NetMainThread::receiveNetworkMessages(void) {
 				pthread_cancel(tcpThread);
 				isMe = true;
 			}
-			getNodeInfo()->removeFiles(msg->secondField);
-			getNodeInfo()->reconfiguration(msg->firstField, msg->secondField);
-			if (isMe)
-				pthread_exit((void*)nullptr);
+			getNodeInfo()->reconfiguration(msg->firstField, msg->secondField, isMe);
+			if (isMe) {
+				delete nodeInfo;
+				pthread_exit(0);
+			}
 			break;
 		case 103:
 		{
