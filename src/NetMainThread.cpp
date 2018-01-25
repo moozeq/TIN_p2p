@@ -112,7 +112,7 @@ void NetMainThread::receiveNetworkMessages(void) {
 			}
 			getNodeInfo()->reconfiguration(msg->firstField, msg->secondField, isMe);
 			if (isMe) {
-				Command::printErrAndDie(this, std::string("leaving network..."));
+				Command::exitCommand(this);
 			}
 			break;
 		case 103:
