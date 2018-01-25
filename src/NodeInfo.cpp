@@ -4,8 +4,6 @@
 #include "SendFileTcp.h"
 #include <unistd.h>
 
-extern size_t calcNodeId(std::string hash);
-
 NodeInfo::~NodeInfo()
 {
 	// Delete all conditionla variables
@@ -63,27 +61,27 @@ void NodeInfo::setNode(size_t nodeId, struct in_addr nodeIP) { //change node IP 
 }
 
 void NodeInfo::removeFiles(size_t ownerId) {
-	std::map<std::string, size_t>::iterator it;
-
-	for (it = nodeFiles.begin(); it != nodeFiles.end(); ++it) {
-		if (it->second == ownerId) {
+	std::unique_lock<std::mutex> uLock(nodeFilesMtx);
+	for (auto it = nodeFiles.begin(); it != nodeFiles.end(); ++it) {
+		if (std::get<0>(it->second) == ownerId) {
+			// Wait until there is 0 transfers on this file
+			std::get<2>(it->second)->wait(uLock, [&it]{return std::get<1>(it->second) == 0;});
 			unlink(it->first.c_str());
+			delete std::get<2>(it->second);	// free heap memory (condition variable)
 			nodeFiles.erase(it);
 		}
 	}
 }
 
 void NodeInfo::changeFilesOwner(size_t newOwnerId, size_t oldOwnerId) {
-	std::map<std::string, size_t>::iterator it;
-
-	for (it = nodeFiles.begin(); it != nodeFiles.end(); ++it) {
-		if (it->second == oldOwnerId)
-			it->second = newOwnerId;
+	std::unique_lock<std::mutex> uLock(nodeFilesMtx);
+	for (auto it = nodeFiles.begin(); it != nodeFiles.end(); ++it) {
+		if (std::get<0>(it->second) == oldOwnerId)
+			std::get<0>(it->second) = newOwnerId;
 	}
 }
 
 void NodeInfo::reconfiguration(size_t newNodeCnt, size_t leavingNodeId, bool isMe) {
-	std::unique_lock<std::mutex> uLock(nodeInfoMtx);
 	if (newNodeCnt != --nodeCnt) {
 		std::cout << "Network's corrupted!" << std::endl;
 		return;
@@ -105,18 +103,18 @@ void NodeInfo::reconfiguration(size_t newNodeCnt, size_t leavingNodeId, bool isM
 	else //last node
 		removeNode(newNodeCnt);
 
-	std::map<std::string, size_t>::iterator it;
-	for (it = nodeFiles.begin(); it != nodeFiles.end(); ++it) {
-		size_t newNodeId = calcNodeId(it->first);
+	std::unique_lock<std::mutex> uLock(nodeFilesMtx);
+	for (auto it = nodeFiles.begin(); it != nodeFiles.end(); ++it) {
+		size_t newNodeId = NetUtils::calcNodeId(it->first, this);
 		if (newNodeId != nodeId || isMe) { //need to send this file || its leaving
-			InfoMessage* msg = new InfoMessage(304, newNodeId, it->first);
+			InfoMessage msg(304, newNodeId, it->first);
 			pthread_t thread;
 			Command* command = new SendFileTcp(msg);
 			pthread_create(&thread, NULL, Command::commandExeWrapper, static_cast<void *>(command));
 			pthread_join(thread, 0);
 			unlink(it->first.c_str());
+			delete std::get<2>(it->second);	// free heap memory (condition variable)
 			nodeFiles.erase(it);
-			delete msg;
 		}
 	}
 }
