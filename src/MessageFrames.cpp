@@ -23,8 +23,3 @@ InfoMessage::InfoMessage(size_t _opcode, size_t nodeCnt, size_t senderId) {
 	secondField = senderId;
 	thirdField = 0;
 }
-
-DataMessage::DataMessage(size_t _opcode){
-	opcode = _opcode;
-	fileCountOrSize = 0;
-}
