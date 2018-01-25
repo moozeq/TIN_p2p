@@ -14,6 +14,13 @@
 #include <linux/if_link.h>
 #include <iostream>
 
+size_t NetUtils::calcNodeId(std::string hash, NodeInfo * nodeInfo) {
+	size_t nodeId;
+	for (unsigned i = 0; i < hash.size(); ++i)
+		nodeId += (unsigned)hash[i];
+	return nodeId % nodeInfo->getNodeCnt();
+}
+
 bool NetUtils::sendInfoMsgUDP(InfoMessage * msg, struct in_addr nodeAddr) {
 	int commonSocketFd;
 	struct sockaddr_in commonSocketAddrIn;
