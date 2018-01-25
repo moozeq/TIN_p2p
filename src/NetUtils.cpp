@@ -144,3 +144,9 @@ struct in_addr NetUtils::getMyIP() {
 
 	return ipAddressStruct.sin_addr;
 }
+
+bool operator==(const struct in_addr & addr1, const struct in_addr & addr2){
+	if(addr1.s_addr == addr2.s_addr)
+		return true;
+	return false;
+}
