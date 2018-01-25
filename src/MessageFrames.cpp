@@ -23,3 +23,13 @@ InfoMessage::InfoMessage(size_t _opcode, size_t nodeCnt, size_t senderId) {
 	secondField = senderId;
 	thirdField = 0;
 }
+
+InfoMessage::InfoMessage(const InfoMessage & other)
+{
+	opcode = other.opcode;
+	firstField = other.firstField;
+	secondField = other.secondField;
+	thirdField = other.thirdField;
+	strncpy(hash, other.hash, 33);
+}
+

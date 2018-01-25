@@ -13,6 +13,8 @@
 #include <arpa/inet.h>
 #include <fstream>
 #include <functional>
+#include <condition_variable>
+#include <tuple>
 
 /**
  * 	@brief	Struct NodeInfo which describes each node
@@ -43,16 +45,25 @@ public:
 	size_t getNodeMapSize() {return nodeMap.size();}
 	NodeInfo(size_t _nodeId = 0, size_t _nodeCnt = 0) :
 		nodeId(_nodeId), nodeCnt(_nodeCnt), connected(false){}
+	~NodeInfo();
 	void callForEachNode(std::function<void (struct in_addr *)>);
+	void callForEachNode(std::function<void (size_t, struct in_addr *)>);
 	void callForEachFile(std::function<void (std::string)>);
+	void registerFileTransfer(std::string hash);
+	void unregisterFileTransfer(std::string hash);
+
+	// Contains: ownerId, transferCounter, conditionVariable (for transferCounter)
+	using FileInfo = std::tuple<size_t, int, std::condition_variable *>;
 
 private:
 	size_t nodeId;
 	size_t nodeCnt;
 	std::map<size_t, struct in_addr> nodeMap;
-	std::map<std::string, size_t> nodeFiles;	// <file hash, owner id>
+	std::map<std::string, FileInfo> nodeFiles;	// <file hash, owner id>
+	std::mutex nodeMapMtx;
+	std::mutex otherMapMtx;
+	std::mutex nodeFilesMtx;
 	bool connected;
-	std::mutex nodeInfoMtx;
 };
 
 

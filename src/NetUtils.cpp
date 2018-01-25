@@ -41,6 +41,13 @@ bool NetUtils::sendInfoMsgUDP(InfoMessage * msg) {
 	return true;
 }
 
+size_t NetUtils::calcNodeId(std::string hash, NodeInfo * nodeInfo) {
+	size_t nodeId;
+	for (unsigned i = 0; i < hash.size(); ++i)
+		nodeId += (unsigned)hash[i];
+	return nodeId % nodeInfo->getNodeCnt();
+}
+
 bool NetUtils::sendInfoMsgUDP(InfoMessage * msg, struct in_addr nodeAddr) {
 	int commonSocketFd;
 	struct sockaddr_in commonSocketAddrIn;
@@ -163,4 +170,10 @@ struct in_addr NetUtils::getMyIP() {
         perror("inet_pton error!");
 
 	return ipAddressStruct.sin_addr;
+}
+
+bool operator==(const struct in_addr & addr1, const struct in_addr & addr2){
+	if(addr1.s_addr == addr2.s_addr)
+		return true;
+	return false;
 }

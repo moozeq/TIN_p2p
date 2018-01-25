@@ -4,8 +4,10 @@
 #include "NodeInfo.h"
 #include "NetMainThread.h"
 #include "ListFilesRequest.h"
+#include "RemoveFileRequest.h"
 #include "GetFile.h"
 #include "Leave.h"
+#include "PrintP2PStats.h"
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -21,12 +23,16 @@ Command * newTerminalCommand(std::string textCommand)
 		outCommand = new AddFile(param);
 	else if(comm == "get")
 		outCommand = new GetFile(param);
+	else if(comm == "remove")
+		outCommand = new RemoveFileRequest(param);
 	else if(textCommand == "join")
 		outCommand = new NetMainThread();
 	else if(textCommand == "list")
 		outCommand = new ListFilesRequest();
 	else if (textCommand == "leave")
 		outCommand = new Leave();
+	else if(textCommand == "stat")
+		outCommand = new PrintP2PStats();
 	else if (textCommand == "exit")
 		exit(0);
 	else
@@ -44,7 +50,7 @@ int main(void)
 	while(1)
 	{
 		std::string userCommand;
-		std::cout << "Enter command (join, add, get, list, leave, exit):\n> ";
+		std::cout << "Enter command (join, add, get, list, leave, remove, stat, exit):\n> ";
 		getline(std::cin, userCommand);
 		Command * command = newTerminalCommand(userCommand);
 		if(command != nullptr)
