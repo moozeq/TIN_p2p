@@ -5,6 +5,7 @@
 #include "NetMainThread.h"
 #include "ListFilesRequest.h"
 #include "GetFile.h"
+#include "Leave.h"
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -22,10 +23,12 @@ Command * newTerminalCommand(std::string textCommand)
 		outCommand = new GetFile(param);
 	else if(textCommand == "join")
 		outCommand = new NetMainThread();
-	else if (textCommand == "exit")
-		exit(0);
 	else if(textCommand == "list")
 		outCommand = new ListFilesRequest();
+	else if (textCommand == "leave")
+		outCommand = new Leave();
+	else if (textCommand == "exit")
+		exit(0);
 	else
 		outCommand = nullptr;
 	return outCommand;
@@ -35,26 +38,33 @@ Command * newTerminalCommand(std::string textCommand)
 int main(void)
 {
 	std::string userCommand;
-	pthread_t thread;
+	pthread_t thread, netThread;
 
 	// Get user commands from terminal
 	while(1)
 	{
 		std::string userCommand;
-		std::cout << "Enter command (join, add, get, exit):\n> ";
+		std::cout << "Enter command (join, add, get, list, leave, exit):\n> ";
 		getline(std::cin, userCommand);
 		Command * command = newTerminalCommand(userCommand);
 		if(command != nullptr)
 		{
 			if(command->reqSeparateThread())
 			{
-				pthread_create(&thread, NULL, Command::commandExeWrapper, static_cast<void *>(command));
+				if (userCommand == "join")
+					pthread_create(&netThread, NULL, Command::commandExeWrapper, static_cast<void *>(command));
+				else
+					pthread_create(&thread, NULL, Command::commandExeWrapper, static_cast<void *>(command));
 				pthread_detach(thread);
 			}
 			else
 			{
 				command->execute();
 				delete command;
+				if (userCommand == "leave") {
+					pthread_join(netThread, NULL);
+					return 0;
+				}
 			}
 		}
 	}

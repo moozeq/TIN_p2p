@@ -15,7 +15,7 @@ class NetMainThread: public Command
 {
 public:
 	static NodeInfo * nodeInfo;
-	NetMainThread() : broadcastAddress(NetUtils::getBroadcastAddress()), commonSocketFd(0) {}
+	NetMainThread() : broadcastAddress(NetUtils::getBroadcastAddress()), commonSocketFd(0), tcpThread(0) {}
 	virtual ~NetMainThread() {}
 
 	static NodeInfo * getNodeInfo(void);
@@ -31,13 +31,12 @@ public:
 	void joinNetwork(InfoMessage * req);
 
 	static const unsigned port = 8888;
-
+	static const unsigned maxTimeToJoinP2P = 2;
 private:
 	std::string broadcastAddress;
 	int commonSocketFd;
 	struct sockaddr_in commonSocketAddrIn;
-
-	const unsigned maxTimeToJoinP2P = 2;
+	pthread_t tcpThread;
 };
 
 #endif /* SRC_NETMAINTHREAD_H_ */
