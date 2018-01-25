@@ -12,8 +12,8 @@ void PrintP2PStats::printNodeInfo(size_t nodeId, struct in_addr * ipAddress)
 void PrintP2PStats::execute(void)
 {
 	NodeInfo * nodeInfo = NetMainThread::getNodeInfo();
-	std::cout << "P2P network statistics: "<< std::endl;
+	std::cout << "\nP2P network statistics: "<< std::endl;
 	nodeInfo->callForEachNode(std::bind(&PrintP2PStats::printNodeInfo,
 			this, std::placeholders::_1, std::placeholders::_2));
-	std::cout << "Nodes count: " << nodeInfo->getNodeCnt() << std::endl;
+	std::cout << "Nodes count: " << nodeInfo->getNodeCnt() << std::endl << std::endl;
 }
