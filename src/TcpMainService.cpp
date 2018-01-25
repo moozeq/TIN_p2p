@@ -10,13 +10,11 @@ Command * TcpMainService::getCommand(size_t opcode, int socketFd)
 {
 	Command * command = nullptr;
 	switch(opcode){
-	case 103:
-		break;
-	case 301:
-	case 304:
+	case 301: //get file without adding new entry
+	case 304: //get file as local file in node
 		command = new ReceiveFileTcp(opcode, socketFd);
 		break;
-	case 302:
+	case 302: //get local files table
 		command = new FilesTableReceive(opcode, socketFd);
 		break;
 	default:

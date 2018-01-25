@@ -19,6 +19,7 @@ public:
 	virtual ~NetMainThread() { delete nodeInfo; }
 
 	static NodeInfo * getNodeInfo(void);
+	void die(std::string s);
 	void execute(void);
 	bool reqSeparateThread(void) {return true;}
 	int init(void);

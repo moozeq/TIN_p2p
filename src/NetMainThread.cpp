@@ -24,9 +24,10 @@
 
 NodeInfo* NetMainThread::nodeInfo;
 
-void die(std::string s)
+void NetMainThread::die(std::string s)
 {
     perror(s.c_str());
+    pthread_cancel(tcpThread);
     pthread_exit((void*)nullptr);
 }
 

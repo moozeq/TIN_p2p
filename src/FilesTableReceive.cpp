@@ -25,16 +25,6 @@ void FilesTableReceive::execute(void)
 							<< tmpHash << std::endl;
 				}
 			}
-			else if(opcode == 303)
-			{
-//				for(unsigned i = 0; i < readBytes/(2 * sizeof(size_t)); ++i)
-//				{
-//					std::cout<<"File " << fileNumber++ <<" id: "
-//							<< static_cast<size_t>(buf[2 * i * sizeof(size_t)])
-//							<< ", owner id: " << static_cast<size_t>(buf[4 + 2 * i * sizeof(size_t)])
-//							<< std::endl;
-//				}
-			}
 		}
 	} while (readBytes != 0);
 	close(socketFd);
