@@ -104,7 +104,7 @@ void NetMainThread::receiveNetworkMessages(void) {
 			msg->firstField = nodeInfo->getNodeCnt();
 			msg->secondField = nodeInfo->getNodeId();
 			msg->thirdField = nodeInfo->getNodeCnt();
-			NetUtils::sendInfoMsgUDP(msg, commonSocketAddrIn.sin_addr, port2);
+			NetUtils::sendInfoMsgUDP(msg, commonSocketAddrIn.sin_addr, joinNetworkPort);
 			close(commonSocketFd);
 			break;
 		case 101:
@@ -191,7 +191,7 @@ int NetMainThread::init(void)
 
 	//receive udp socketjak
 	std::cout<<"Waiting for response within " << NetMainThread::maxTimeToJoinP2P << " seconds" <<std::endl;
-	if (setAndReceiveInfoMsgUDP(NetMainThread::maxTimeToJoinP2P, msg, port2) < 0)
+	if (setAndReceiveInfoMsgUDP(NetMainThread::maxTimeToJoinP2P, msg, joinNetworkPort) < 0)
 		buildNetwork();
 	else
 		joinNetwork(msg);

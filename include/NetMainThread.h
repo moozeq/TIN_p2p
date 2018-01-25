@@ -32,7 +32,7 @@ public:
 	void joinNetwork(InfoMessage * req);
 
 	static const unsigned port = 8888;
-	static const unsigned port2 = 8889;
+	static const unsigned joinNetworkPort = 8889;
 	static const unsigned maxTimeToJoinP2P = 2;
 private:
 	std::string broadcastAddress;
