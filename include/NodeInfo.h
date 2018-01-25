@@ -45,6 +45,8 @@ public:
 	~NodeInfo();
 	void callForEachNode(std::function<void (struct in_addr *)>);
 	void callForEachFile(std::function<void (std::string)>);
+	void registerFileTransfer(std::string hash);
+	void unregisterFileTransfer(std::string hash);
 
 	// Contains: ownerId, transferCounter, conditionVariable (for transferCounter)
 	using FileInfo = std::tuple<size_t, int, std::condition_variable *>;
