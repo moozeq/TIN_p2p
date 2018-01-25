@@ -48,7 +48,7 @@ size_t NetUtils::calcNodeId(std::string hash, NodeInfo * nodeInfo) {
 	return nodeId % nodeInfo->getNodeCnt();
 }
 
-bool NetUtils::sendInfoMsgUDP(InfoMessage * msg, struct in_addr nodeAddr) {
+bool NetUtils::sendInfoMsgUDP(InfoMessage * msg, struct in_addr nodeAddr, unsigned port) {
 	int commonSocketFd;
 	struct sockaddr_in commonSocketAddrIn;
 	socklen_t slen = sizeof(commonSocketAddrIn);
@@ -63,7 +63,7 @@ bool NetUtils::sendInfoMsgUDP(InfoMessage * msg, struct in_addr nodeAddr) {
 
 	memset((char *) &commonSocketAddrIn, 0, sizeof(commonSocketAddrIn));
 	commonSocketAddrIn.sin_family = AF_INET;
-	commonSocketAddrIn.sin_port = htons(NetMainThread::port);
+	commonSocketAddrIn.sin_port = htons(port);
 	commonSocketAddrIn.sin_addr = nodeAddr;
 
 	if (sendto(commonSocketFd, msg, sizeof(*msg), 0, (struct sockaddr*) &commonSocketAddrIn, slen) < 0)
@@ -74,7 +74,7 @@ bool NetUtils::sendInfoMsgUDP(InfoMessage * msg, struct in_addr nodeAddr) {
 }
 
 bool NetUtils::sendInfoMsgUDP(InfoMessage * msg, size_t nodeId) {
-	return NetUtils::sendInfoMsgUDP(msg, NetMainThread::getNodeInfo()->getNodeIP(nodeId));
+	return NetUtils::sendInfoMsgUDP(msg, NetMainThread::getNodeInfo()->getNodeIP(nodeId), NetMainThread::port);
 }
 
 bool NetUtils::sendFileTCP(std::string hash, std::string* stringFile, size_t ownerId, size_t fileNodeId, size_t opcode) {

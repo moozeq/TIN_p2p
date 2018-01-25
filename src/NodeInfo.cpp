@@ -30,18 +30,21 @@ void NodeInfo::removeFile(std::string hash)
 }
 
 void NodeInfo::addNewNode(struct in_addr nodeIP) {
+	std::unique_lock<std::mutex> uLock(nodeMapMtx);
 	nodeMap.insert(std::pair<size_t,struct in_addr>(nodeCnt, nodeIP));
 	std::cout << "Added new node:" << std::endl
 				<< "\tNode ID: " << nodeCnt << std::endl
-				<< "\tNode IP: " << inet_ntoa(getNodeIP(nodeCnt)) << std::endl;
+				<< "\tNode IP: " << inet_ntoa(nodeIP) << std::endl;
 	++nodeCnt;
 }
 
 void NodeInfo::removeNode(size_t nodeId) {
+	std::unique_lock<std::mutex> uLock(nodeMapMtx);
 	nodeMap.erase(nodeId);
 }
 
 struct in_addr NodeInfo::getNodeIP(size_t nodeId) {
+	std::unique_lock<std::mutex> uLock(nodeMapMtx);
 	std::map<size_t,struct in_addr>::iterator it = nodeMap.find(nodeId);
 	if (it == nodeMap.end()) {
 		struct in_addr tmp;
@@ -52,6 +55,7 @@ struct in_addr NodeInfo::getNodeIP(size_t nodeId) {
 }
 
 void NodeInfo::setNode(size_t nodeId, struct in_addr nodeIP) { //change node IP or create new entry
+	std::unique_lock<std::mutex> uLock(nodeMapMtx);
 	std::map<size_t,struct in_addr>::iterator it = nodeMap.find(nodeId);
 	if (it == nodeMap.end()) {
 		nodeMap.insert(std::pair<size_t,struct in_addr>(nodeId, nodeIP));
@@ -60,8 +64,7 @@ void NodeInfo::setNode(size_t nodeId, struct in_addr nodeIP) { //change node IP 
 	it->second = nodeIP;
 }
 
-void NodeInfo::removeFiles(size_t ownerId) {
-	std::unique_lock<std::mutex> uLock(nodeFilesMtx);
+void NodeInfo::removeFiles(size_t ownerId, std::unique_lock<std::mutex>& uLock) {
 	for (auto it = nodeFiles.begin(); it != nodeFiles.end(); ++it) {
 		if (std::get<0>(it->second) == ownerId) {
 			// Wait until there is 0 transfers on this file
@@ -73,8 +76,8 @@ void NodeInfo::removeFiles(size_t ownerId) {
 	}
 }
 
+// Used only in reconfiguration
 void NodeInfo::changeFilesOwner(size_t newOwnerId, size_t oldOwnerId) {
-	std::unique_lock<std::mutex> uLock(nodeFilesMtx);
 	for (auto it = nodeFiles.begin(); it != nodeFiles.end(); ++it) {
 		if (std::get<0>(it->second) == oldOwnerId)
 			std::get<0>(it->second) = newOwnerId;
@@ -82,15 +85,16 @@ void NodeInfo::changeFilesOwner(size_t newOwnerId, size_t oldOwnerId) {
 }
 
 void NodeInfo::reconfiguration(size_t newNodeCnt, size_t leavingNodeId, bool isMe) {
+	std::unique_lock<std::mutex> uLock(nodeFilesMtx);
 	if (newNodeCnt != --nodeCnt) {
 		std::cout << "Network's corrupted!" << std::endl;
 		return;
 	}
 	if (nodeCnt == 0 && isMe) { //last node in network
-		removeFiles(0);
+		removeFiles(0, uLock);
 		return;
 	}
-	removeFiles(leavingNodeId); //remove files from leaving node
+	removeFiles(leavingNodeId, uLock); //remove files from leaving node
 
 	if (newNodeCnt != leavingNodeId) { //not last node
 		setNode(leavingNodeId, getNodeIP(newNodeCnt)); //swap nodes
@@ -108,7 +112,29 @@ void NodeInfo::reconfiguration(size_t newNodeCnt, size_t leavingNodeId, bool isM
 		if (newNodeId != nodeId || isMe) { //need to send this file || its leaving
 			InfoMessage msg(304, newNodeId, it->first);
 			pthread_t thread;
-			Command* command = new SendFileTcp(msg);
+			Command* command = new SendFileTcp(msg, true);
+			pthread_create(&thread, NULL, Command::commandExeWrapper, static_cast<void *>(command));
+			pthread_join(thread, 0);
+			unlink(it->first.c_str());
+			delete std::get<2>(it->second);	// free heap memory (condition variable)
+			nodeFiles.erase(it);
+		}
+	}
+}
+
+void NodeInfo::reconfiguration(size_t newNodeCnt) {
+	std::unique_lock<std::mutex> uLock(nodeFilesMtx);
+	if (newNodeCnt != nodeCnt) { //added node before
+		std::cout << "Network's corrupted!" << std::endl;
+		return;
+	}
+
+	for (auto it = nodeFiles.begin(); it != nodeFiles.end(); ++it) {
+		size_t newNodeId = NetUtils::calcNodeId(it->first, this);
+		if (newNodeId != nodeId) { //need to send this file
+			InfoMessage msg(304, newNodeId, it->first);
+			pthread_t thread;
+			Command* command = new SendFileTcp(msg, true);
 			pthread_create(&thread, NULL, Command::commandExeWrapper, static_cast<void *>(command));
 			pthread_join(thread, 0);
 			unlink(it->first.c_str());
@@ -139,16 +165,18 @@ void NodeInfo::callForEachFile(std::function<void (std::string)> callback)
 		callback(file.first);
 }
 
-void NodeInfo::registerFileTransfer(std::string hash)
+void NodeInfo::registerFileTransfer(std::string hash, bool noMutex)
 {
-	std::unique_lock<std::mutex> uLock(nodeFilesMtx);
+	if (!noMutex)
+		std::unique_lock<std::mutex> uLock(nodeFilesMtx);
 	auto it = nodeFiles.find(hash);
 	++std::get<1>(it->second);
 }
 
-void NodeInfo::unregisterFileTransfer(std::string hash)
+void NodeInfo::unregisterFileTransfer(std::string hash, bool noMutex)
 {
-	std::unique_lock<std::mutex> uLock(nodeFilesMtx);
+	if (!noMutex)
+		std::unique_lock<std::mutex> uLock(nodeFilesMtx);
 	auto it = nodeFiles.find(hash);
 	--std::get<1>(it->second);
 	// Notify if all transfers completed
@@ -156,8 +184,9 @@ void NodeInfo::unregisterFileTransfer(std::string hash)
 		(std::get<2>(it->second))->notify_one();
 }
 
-size_t NodeInfo::getOwnerId(std::string hash) {
-	std::unique_lock<std::mutex> uLock(nodeFilesMtx);
+size_t NodeInfo::getOwnerId(std::string hash, bool noMutex) {
+	if (!noMutex)
+		std::unique_lock<std::mutex> uLock(nodeFilesMtx);
 	auto it = nodeFiles.find(hash);
 	return std::get<0>(it->second);
 }
