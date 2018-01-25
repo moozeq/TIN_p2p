@@ -45,7 +45,7 @@ public:
 	size_t getNodeCnt() {return nodeCnt;}
 	size_t getNodeMapSize() {return nodeMap.size();}
 	NodeInfo(size_t _nodeId = 0, size_t _nodeCnt = 0) :
-		nodeId(_nodeId), nodeCnt(_nodeCnt), connected(false){}
+		nodeId(_nodeId), nodeCnt(_nodeCnt), connected(true){}
 	~NodeInfo();
 	void callForEachNode(std::function<void (struct in_addr *)>);
 	void callForEachNode(std::function<void (size_t, struct in_addr *)>);
