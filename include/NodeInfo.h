@@ -27,15 +27,16 @@ public:
 	void addNewNode(struct in_addr nodeIP);
 	void removeNode(size_t nodeId);
 	struct in_addr getNodeIP(size_t nodeId);
-	size_t getOwnerId(std::string hash);
+	size_t getOwnerId(std::string hash, bool noMutex);
 	void setNodeIdCnt(size_t _nodeId, size_t _nodeCnt) {
 		nodeId = _nodeId;
 		nodeCnt = _nodeCnt;
 	}
 	void setNode(size_t nodeId, struct in_addr nodeIP);
-	void removeFiles(size_t ownerId);
+	void removeFiles(size_t ownerId, std::unique_lock<std::mutex>& uLock);
 	void changeFilesOwner(size_t oldOwnerId, size_t newOwnerId);
-	void reconfiguration(size_t newNodeCnt, size_t leavingNodeId, bool isMe);
+	void reconfiguration(size_t newNodeCnt); //when joining new node
+	void reconfiguration(size_t newNodeCnt, size_t leavingNodeId, bool isMe); //when leaving node
 	void setNodeId(size_t _nodeId) {nodeId = _nodeId;}
 	void setNodeCnt(size_t _nodeCnt) {nodeCnt = _nodeCnt;}
 	void setConnected(bool _connected) {	connected = _connected; 	}
@@ -49,8 +50,8 @@ public:
 	void callForEachNode(std::function<void (struct in_addr *)>);
 	void callForEachNode(std::function<void (size_t, struct in_addr *)>);
 	void callForEachFile(std::function<void (std::string)>);
-	void registerFileTransfer(std::string hash);
-	void unregisterFileTransfer(std::string hash);
+	void registerFileTransfer(std::string hash, bool noMutex);
+	void unregisterFileTransfer(std::string hash, bool noMutex);
 
 	// Contains: ownerId, transferCounter, conditionVariable (for transferCounter)
 	using FileInfo = std::tuple<size_t, int, std::condition_variable *>;
