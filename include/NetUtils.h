@@ -1,6 +1,7 @@
 #ifndef NETUTILS_H_
 #define NETUTILS_H_
 #include "MessageFrames.h"
+#include "NodeInfo.h"
 #include <string>
 
 class NetUtils
@@ -13,6 +14,7 @@ public:
 	static bool sendInfoMsgUDP(InfoMessage * msg, size_t nodeId);
 	static bool sendInfoMsgUDP(InfoMessage * msg, struct in_addr nodeAddr);
 	static struct in_addr getMyIP();
+	static size_t calcNodeId(std::string hash, NodeInfo * nodeInfo);
 };
 
 #endif /* NETUTILS_H_ */

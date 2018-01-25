@@ -3,6 +3,7 @@
 
 #include "Command.h"
 #include <string>
+#include "NetUtils.h"
 
 class AddFile: public Command
 {

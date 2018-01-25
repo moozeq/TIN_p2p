@@ -7,6 +7,7 @@ class InfoMessage {
 public:
 	InfoMessage(size_t opcode = 0);
 	InfoMessage(size_t _opcode, size_t myId, std::string _hash);
+	InfoMessage(const InfoMessage & other);
 	size_t opcode;
 	size_t firstField;
 	size_t secondField;

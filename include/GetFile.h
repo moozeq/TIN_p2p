@@ -11,7 +11,7 @@ public:
 	virtual ~GetFile() {}
 
 	void execute(void);
-	bool reqSeparateThread(void) {return true;}
+	bool reqSeparateThread(void) {return false;}
 private:
 	std::string param;
 };

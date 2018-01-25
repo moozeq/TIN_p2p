@@ -19,19 +19,6 @@
 
 using namespace std;
 
-size_t calcNodeId(string hash) {
-	size_t nodeId;
-	for (unsigned i = 0; i < hash.size(); ++i)
-		nodeId += (unsigned)hash[i];
-	return nodeId % NetMainThread::getNodeInfo()->getNodeCnt();
-}
-
-void ptDie(std::string s)
-{
-    perror(s.c_str());
-    pthread_exit((void*)nullptr);
-}
-
 void AddFile::execute(void)
 {
 	string fileStr;
@@ -69,7 +56,7 @@ void AddFile::execute(void)
 	//sendFileTCP(mdString, &fileStr, 0);
 	NodeInfo* nodeInfo = NetMainThread::getNodeInfo();
 	if (nodeInfo != nullptr) {
-		size_t fileNodeId = calcNodeId(mdString);
+		size_t fileNodeId = NetUtils::calcNodeId(mdString, NetMainThread::getNodeInfo());
 		size_t ownerId = NetMainThread::getNodeInfo()->getNodeId();
 		 if (nodeInfo->getNodeId() == fileNodeId){ 			//file in this node
 			 std::ofstream file(mdString.c_str(), std::ios::out | std::ios::binary);
