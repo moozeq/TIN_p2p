@@ -20,6 +20,7 @@
 #include <sys/ioctl.h>
 #include "MessageFrames.h"
 #include "SendFileTcp.h"
+#include "RemoveFile.h"
 
 NodeInfo* NetMainThread::nodeInfo;
 
@@ -117,12 +118,21 @@ void NetMainThread::receiveNetworkMessages(void) {
 			nodeInfo->addNewNode(commonSocketAddrIn.sin_addr);
 			break;
 		case 300:
-		case 301:
+		{
 			pthread_t thread;
-			Command* command = new SendFileTcp(msg);
-			pthread_create(&thread, NULL, Command::commandExeWrapper, static_cast<void *>(command));
+			Command* removeFile = new RemoveFile(*msg);
+			pthread_create(&thread, NULL, Command::commandExeWrapper, static_cast<void *>(removeFile));
 			pthread_detach(thread);
 			break;
+		}
+		case 301:
+		{
+			pthread_t thread;
+			Command* sendFileTcp = new SendFileTcp(*msg);
+			pthread_create(&thread, NULL, Command::commandExeWrapper, static_cast<void *>(sendFileTcp));
+			pthread_detach(thread);
+			break;
+		}
 		}
 	}
 	delete msg;

@@ -17,6 +17,15 @@ InfoMessage::InfoMessage(size_t _opcode, size_t nodeId, std::string _hash) {
 	strncpy(hash, _hash.c_str(), 33);
 }
 
+InfoMessage::InfoMessage(const InfoMessage & other)
+{
+	opcode = other.opcode;
+	firstField = other.firstField;
+	secondField = other.secondField;
+	thirdField = other.thirdField;
+	strncpy(hash, other.hash, 33);
+}
+
 DataMessage::DataMessage(size_t _opcode){
 	opcode = _opcode;
 	fileCountOrSize = 0;

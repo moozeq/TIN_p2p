@@ -5,13 +5,13 @@
 
 class SendFileTcp: public Command {
 public:
-	SendFileTcp(InfoMessage* _msg) : msg(_msg) {}
+	SendFileTcp(InfoMessage _msg) : msg(_msg) {}
 	virtual ~SendFileTcp() {}
 
 	void execute(void);
 	bool reqSeparateThread(void) {return true;}
 private:
-	InfoMessage* msg;
+	InfoMessage msg;
 };
 
 #endif /* SRC_SENDFILETCP_H_ */

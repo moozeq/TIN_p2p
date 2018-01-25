@@ -2,10 +2,9 @@
 #include "NetMainThread.h"
 #include "NodeInfo.h"
 #include "MessageFrames.h"
+#include "NetUtils.h"
 
 using namespace std;
-
-extern size_t calcNodeId(std::string hash);
 
 void GetFile::execute(void) {
 	size_t nodeId = NetUtils::calcNodeId(param, NetMainThread::getNodeInfo());
