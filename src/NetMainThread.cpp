@@ -75,7 +75,7 @@ ssize_t NetMainThread::setAndReceiveInfoMsgUDP(unsigned timeout, InfoMessage * m
 		die(strerror(errno));
 
 	if (timeout > 0) {
-		//recv first info about network in 5 secs, otherwise -> new network
+		//recv first info about network in x secs, otherwise -> new network
 		struct timeval tv;
 		tv.tv_sec = timeout;
 		tv.tv_usec = 0;
@@ -94,6 +94,7 @@ ssize_t NetMainThread::setAndReceiveInfoMsgUDP(unsigned timeout, InfoMessage * m
 void NetMainThread::receiveNetworkMessages(void) {
 	std::cout << "Net Main Thread's waiting for requests..." << std::endl;
 	InfoMessage * msg = new InfoMessage();
+	bool isMe = false;
 	while (setAndReceiveInfoMsgUDP(0, msg)) {
 		close(commonSocketFd);
 		switch(msg->opcode) {
@@ -106,6 +107,15 @@ void NetMainThread::receiveNetworkMessages(void) {
 			close(commonSocketFd);
 			break;
 		case 101:
+			if (msg->secondField == getNodeInfo()->getNodeId()) {
+				pthread_cancel(tcpThread);
+				isMe = true;
+			}
+			getNodeInfo()->reconfiguration(msg->firstField, msg->secondField, isMe);
+			if (isMe) {
+				Command::exitCommand(this);
+			}
+			break;
 		case 103:
 		{
 			pthread_t thread;
@@ -190,8 +200,8 @@ int NetMainThread::init(void)
 	close(commonSocketFd); //close udp socket for broadcast
 
 	//receive udp socketjak
-	std::cout<<"Waiting for response within " << maxTimeToJoinP2P << " seconds" <<std::endl;
-	if (setAndReceiveInfoMsgUDP(maxTimeToJoinP2P, msg) < 0)
+	std::cout<<"Waiting for response within " << NetMainThread::maxTimeToJoinP2P << " seconds" <<std::endl;
+	if (setAndReceiveInfoMsgUDP(NetMainThread::maxTimeToJoinP2P, msg) < 0)
 		buildNetwork();
 	else
 		joinNetwork(msg);
@@ -203,7 +213,6 @@ int NetMainThread::init(void)
 
 void NetMainThread::execute(void)
 {
-	pthread_t thread;
 	Command * command;
 
 	if(getNodeInfo() != nullptr && getNodeInfo()->isConnected()){
@@ -214,8 +223,8 @@ void NetMainThread::execute(void)
 
 	// Create Main tcp listener thread
 	command = new TcpMainService();
-	pthread_create(&thread, NULL, Command::commandExeWrapper, static_cast<void *>(command));
-	pthread_detach(thread);
+	pthread_create(&tcpThread, NULL, Command::commandExeWrapper, static_cast<void *>(command));
+	pthread_detach(tcpThread);
 
 	receiveNetworkMessages();
 }

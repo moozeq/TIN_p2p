@@ -39,6 +39,12 @@ public:
 	    delete cmd;
 	    pthread_exit((void*)nullptr);
 	}
+
+	static void exitCommand(Command * cmd)
+	{
+	    delete cmd;
+	    pthread_exit((void*)nullptr);
+	}
 };
 
 #endif /* COMMAND_H_ */

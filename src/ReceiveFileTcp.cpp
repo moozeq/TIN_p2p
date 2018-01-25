@@ -25,7 +25,7 @@ void ReceiveFileTcp::execute(void)
 	std::string fileHash(hash);
 	if (opcode == 304)
 		NetMainThread::getNodeInfo()->addNewFileEntry(fileHash, ownerId);
-	std::cout << "\tAdded new file:\n\tFile's hash: " << fileHash
+	std::cout << "Added new file:\n\tFile's hash: " << fileHash
 			<< "\n\tFile's owner ID: "<< ownerId << std::endl;
 	close(socketFd);
 }

@@ -1,4 +1,8 @@
 #include "NodeInfo.h"
+#include "NetUtils.h"
+#include "Command.h"
+#include "SendFileTcp.h"
+#include <unistd.h>
 
 NodeInfo::~NodeInfo()
 {
@@ -54,6 +58,64 @@ void NodeInfo::setNode(size_t nodeId, struct in_addr nodeIP) { //change node IP 
 		return;
 	}
 	it->second = nodeIP;
+}
+
+void NodeInfo::removeFiles(size_t ownerId) {
+	std::unique_lock<std::mutex> uLock(nodeFilesMtx);
+	for (auto it = nodeFiles.begin(); it != nodeFiles.end(); ++it) {
+		if (std::get<0>(it->second) == ownerId) {
+			// Wait until there is 0 transfers on this file
+			std::get<2>(it->second)->wait(uLock, [&it]{return std::get<1>(it->second) == 0;});
+			unlink(it->first.c_str());
+			delete std::get<2>(it->second);	// free heap memory (condition variable)
+			nodeFiles.erase(it);
+		}
+	}
+}
+
+void NodeInfo::changeFilesOwner(size_t newOwnerId, size_t oldOwnerId) {
+	std::unique_lock<std::mutex> uLock(nodeFilesMtx);
+	for (auto it = nodeFiles.begin(); it != nodeFiles.end(); ++it) {
+		if (std::get<0>(it->second) == oldOwnerId)
+			std::get<0>(it->second) = newOwnerId;
+	}
+}
+
+void NodeInfo::reconfiguration(size_t newNodeCnt, size_t leavingNodeId, bool isMe) {
+	if (newNodeCnt != --nodeCnt) {
+		std::cout << "Network's corrupted!" << std::endl;
+		return;
+	}
+	if (nodeCnt == 0 && isMe) { //last node in network
+		removeFiles(0);
+		return;
+	}
+	removeFiles(leavingNodeId); //remove files from leaving node
+
+	if (newNodeCnt != leavingNodeId) { //not last node
+		setNode(leavingNodeId, getNodeIP(newNodeCnt)); //swap nodes
+		removeNode(newNodeCnt);
+		changeFilesOwner(leavingNodeId, newNodeCnt);
+
+		if (nodeId == newNodeCnt) //this was last added node
+			nodeId = leavingNodeId;
+	}
+	else //last node
+		removeNode(newNodeCnt);
+
+	for (auto it = nodeFiles.begin(); it != nodeFiles.end(); ++it) {
+		size_t newNodeId = NetUtils::calcNodeId(it->first, this);
+		if (newNodeId != nodeId || isMe) { //need to send this file || its leaving
+			InfoMessage msg(304, newNodeId, it->first);
+			pthread_t thread;
+			Command* command = new SendFileTcp(msg);
+			pthread_create(&thread, NULL, Command::commandExeWrapper, static_cast<void *>(command));
+			pthread_join(thread, 0);
+			unlink(it->first.c_str());
+			delete std::get<2>(it->second);	// free heap memory (condition variable)
+			nodeFiles.erase(it);
+		}
+	}
 }
 
 void NodeInfo::callForEachNode(std::function<void (struct in_addr *)> callback)

@@ -14,6 +14,33 @@
 #include <linux/if_link.h>
 #include <iostream>
 
+bool NetUtils::sendInfoMsgUDP(InfoMessage * msg) {
+	int commonSocketFd;
+	struct sockaddr_in commonSocketAddrIn;
+	socklen_t slen = sizeof(commonSocketAddrIn);
+
+	//socket
+	if ((commonSocketFd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
+		return false;
+
+	int option = 1;
+	if (setsockopt(commonSocketFd,SOL_SOCKET,SO_REUSEADDR, &option, sizeof(option)) < 0)
+		return false;
+	if (setsockopt(commonSocketFd,SOL_SOCKET,SO_BROADCAST, &option, sizeof(option)) < 0)
+		return false;
+
+	memset((char *) &commonSocketAddrIn, 0, sizeof(commonSocketAddrIn));
+	commonSocketAddrIn.sin_family = AF_INET;
+	commonSocketAddrIn.sin_port = htons(NetMainThread::port);
+	if (inet_aton(getBroadcastAddress().c_str() , &commonSocketAddrIn.sin_addr) == 0)
+		return false;
+	if (sendto(commonSocketFd, msg, sizeof(*msg), 0, (struct sockaddr*) &commonSocketAddrIn, slen) < 0)
+		return false;
+
+	close(commonSocketFd);
+	return true;
+}
+
 size_t NetUtils::calcNodeId(std::string hash, NodeInfo * nodeInfo) {
 	size_t nodeId;
 	for (unsigned i = 0; i < hash.size(); ++i)

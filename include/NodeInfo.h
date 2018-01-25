@@ -33,6 +33,9 @@ public:
 		nodeCnt = _nodeCnt;
 	}
 	void setNode(size_t nodeId, struct in_addr nodeIP);
+	void removeFiles(size_t ownerId);
+	void changeFilesOwner(size_t oldOwnerId, size_t newOwnerId);
+	void reconfiguration(size_t newNodeCnt, size_t leavingNodeId, bool isMe);
 	void setNodeId(size_t _nodeId) {nodeId = _nodeId;}
 	void setNodeCnt(size_t _nodeCnt) {nodeCnt = _nodeCnt;}
 	void setConnected(bool _connected) {	connected = _connected; 	}
