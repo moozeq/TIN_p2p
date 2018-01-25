@@ -44,6 +44,7 @@ public:
 		nodeId(_nodeId), nodeCnt(_nodeCnt), connected(false){}
 	~NodeInfo();
 	void callForEachNode(std::function<void (struct in_addr *)>);
+	void callForEachNode(std::function<void (size_t, struct in_addr *)>);
 	void callForEachFile(std::function<void (std::string)>);
 	void registerFileTransfer(std::string hash);
 	void unregisterFileTransfer(std::string hash);

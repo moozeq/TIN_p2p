@@ -17,4 +17,6 @@ public:
 	static size_t calcNodeId(std::string hash, NodeInfo * nodeInfo);
 };
 
+bool operator==(const struct in_addr & addr1, const struct in_addr & addr2);
+
 #endif /* NETUTILS_H_ */
