@@ -114,7 +114,7 @@ void NetMainThread::receiveNetworkMessages(void) {
 			NetUtils::sendInfoMsgUDP(msg, commonSocketAddrIn.sin_addr, joinNetworkPort);
 			break;
 		}
-		case 101:
+		case 101: //node wants to leave (this node or another)
 		{
 			--nodeCnt;
 			if (msg->secondField == getNodeInfo()->getNodeId()) {
@@ -126,7 +126,7 @@ void NetMainThread::receiveNetworkMessages(void) {
 				Command::exitCommand(this);
 			break;
 		}
-		case 103:
+		case 103: //other node wants local files table
 		{
 			pthread_t thread;
 			Command * sendFilesTable = new FilesTableSend(commonSocketAddrIn.sin_addr);
@@ -134,7 +134,7 @@ void NetMainThread::receiveNetworkMessages(void) {
 			pthread_detach(thread);
 			break;
 		}
-		case 203:
+		case 203: //new node collected messages about network properly, now wants to join
 		{
 			if (msg->secondField == nodeInfo->getNodeCnt()) //proper node
 				nodeInfo->reconfiguration(msg->firstField, commonSocketAddrIn.sin_addr);
@@ -146,7 +146,7 @@ void NetMainThread::receiveNetworkMessages(void) {
 			}
 			break;
 		}
-		case 300:
+		case 300: //other node wants to remove file in this node's local files
 		{
 			pthread_t thread;
 			Command* removeFile = new RemoveFile(*msg);
@@ -154,7 +154,7 @@ void NetMainThread::receiveNetworkMessages(void) {
 			pthread_detach(thread);
 			break;
 		}
-		case 301:
+		case 301: //other node wants to get file from this node's local files
 		{
 			pthread_t thread;
 			Command* sendFileTcp = new SendFileTcp(*msg);
@@ -162,12 +162,17 @@ void NetMainThread::receiveNetworkMessages(void) {
 			pthread_detach(thread);
 			break;
 		}
-		case 400:
+		case 400: //exceptional situation when more than 1 new nodes want to join simultaneously
 		{
 			std::cout << "Failed when joining to network" << std::endl;
 			pthread_cancel(tcpThread);
 			delete this;
 			exit(1);
+		}
+		case 401: //new node couldn't collect enough nodes' IPs
+		{
+			--nodeCnt;
+			break;
 		}
 		}
 	}
@@ -214,6 +219,16 @@ void NetMainThread::joinNetwork(InfoMessage * msg) {
 				}
 			}
 		}
+	}
+	if (msg->firstField != nodeInfo->getNodeMapSize()) { //not enough nodes replied
+		InfoMessage * msg = new InfoMessage(401); //cannot join
+		setAndSendInfoMsgUDP(msg, port);
+		std::cout << "Some nodes may be unreachable, cannot join" << std::endl;
+		delete msg;
+
+		pthread_cancel(tcpThread);
+		delete this;
+		exit(1);
 	}
 	//now needs to get files from nodes
 }
