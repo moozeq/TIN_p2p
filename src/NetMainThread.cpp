@@ -95,28 +95,32 @@ ssize_t NetMainThread::setAndReceiveInfoMsgUDP(unsigned timeout, InfoMessage * m
 void NetMainThread::receiveNetworkMessages(void) {
 	std::cout << "Net Main Thread's waiting for requests..." << std::endl;
 	InfoMessage * msg = new InfoMessage();
+	size_t nodeCnt = nodeInfo->getNodeCnt();
 	bool isMe = false;
 	while (setAndReceiveInfoMsgUDP(0, msg, port)) {
 		close(commonSocketFd);
 		switch(msg->opcode) {
 		case 100: //new node wants to join
+		{
 			msg->opcode = 102;
-			msg->firstField = nodeInfo->getNodeCnt();
+			msg->thirdField = nodeCnt++; //new node's id
+			msg->firstField = nodeCnt; //how many nodes
 			msg->secondField = nodeInfo->getNodeId();
-			msg->thirdField = nodeInfo->getNodeCnt();
 			NetUtils::sendInfoMsgUDP(msg, commonSocketAddrIn.sin_addr, joinNetworkPort);
-			close(commonSocketFd);
 			break;
+		}
 		case 101:
+		{
+			--nodeCnt;
 			if (msg->secondField == getNodeInfo()->getNodeId()) {
 				pthread_cancel(tcpThread);
 				isMe = true;
 			}
 			nodeInfo->reconfiguration(msg->firstField, msg->secondField, isMe);
-			if (isMe) {
+			if (isMe)
 				Command::exitCommand(this);
-			}
 			break;
+		}
 		case 103:
 		{
 			pthread_t thread;
@@ -126,9 +130,18 @@ void NetMainThread::receiveNetworkMessages(void) {
 			break;
 		}
 		case 203:
-			nodeInfo->addNewNode(commonSocketAddrIn.sin_addr);
-			nodeInfo->reconfiguration(msg->firstField);
+		{
+			if (msg->secondField == nodeInfo->getNodeCnt()) { //proper node
+				nodeInfo->addNewNode(commonSocketAddrIn.sin_addr);
+				nodeInfo->reconfiguration(msg->firstField);
+			}
+			else { //wrong node
+				nodeCnt = nodeInfo->getNodeCnt(); //reset local nodeCnt
+				msg->opcode = 400;
+				NetUtils::sendInfoMsgUDP(msg, commonSocketAddrIn.sin_addr, port);
+			}
 			break;
+		}
 		case 300:
 		{
 			pthread_t thread;
@@ -145,6 +158,12 @@ void NetMainThread::receiveNetworkMessages(void) {
 			pthread_detach(thread);
 			break;
 		}
+		case 400:
+		{
+			pthread_cancel(tcpThread);
+			delete this;
+			exit(1);
+		}
 		}
 	}
 	delete msg;
@@ -160,15 +179,19 @@ void NetMainThread::buildNetwork(void) {
 
 void NetMainThread::joinNetwork(InfoMessage * msg) {
 	if (msg->opcode == 102) {
-		nodeInfo = new NodeInfo(msg->thirdField, msg->firstField + 1); //node id, node cnt
+		nodeInfo = new NodeInfo(msg->thirdField, msg->firstField); //node id, node cnt
 		nodeInfo->setNode(nodeInfo->getNodeId(), NetUtils::getMyIP()); //add current node
 		nodeInfo->setNode(msg->secondField, commonSocketAddrIn.sin_addr); //add sender node
+	}
+	if (nodeInfo->getNodeCnt() == nodeInfo->getNodeMapSize()) {
+		std::cout << "Network's been constructed" << std::endl;
+		return;
 	}
 	ssize_t recv_len;
 	socklen_t slen = sizeof(commonSocketAddrIn);
 	while((recv_len = recvfrom(commonSocketFd, msg, sizeof(*msg), 0, (struct sockaddr *) &commonSocketAddrIn, &slen)) > 0) {
 		if (msg->opcode == 102) { //msg about network (cnt, sender id, receiver id)
-			if (msg->firstField + 1 != nodeInfo->getNodeCnt() || msg->thirdField != nodeInfo->getNodeId())
+			if (msg->firstField != nodeInfo->getNodeCnt() || msg->thirdField != nodeInfo->getNodeId())
 				die("Network's corrupted");
 			else {
 				nodeInfo->setNode(msg->secondField, commonSocketAddrIn.sin_addr); //add sender node
@@ -189,7 +212,7 @@ int NetMainThread::init(void)
 	std::cout<<"Sent request - joining network, opcode = " << msg->opcode <<std::endl;
 	close(commonSocketFd); //close udp socket for broadcast
 
-	//receive udp socketjak
+	//receive udp socket
 	std::cout<<"Waiting for response within " << NetMainThread::maxTimeToJoinP2P << " seconds" <<std::endl;
 	if (setAndReceiveInfoMsgUDP(NetMainThread::maxTimeToJoinP2P, msg, joinNetworkPort) < 0)
 		buildNetwork();

@@ -59,7 +59,7 @@ int main(void)
 			{
 				if (userCommand == "join")
 					pthread_create(&netThread, NULL, Command::commandExeWrapper, static_cast<void *>(command));
-				else{
+				else {
 					pthread_create(&thread, NULL, Command::commandExeWrapper, static_cast<void *>(command));
 					pthread_detach(thread);
 				}
