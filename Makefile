@@ -2,18 +2,25 @@
 CC     = g++
 
 # Include directory
-INC = -I./include
+INC = -I./include -L/usr/lib
 
 # Source files directory
 SRC_DIR = src
 
 # Compiler flags
-CFLAGS = -Wall $(INC) -std=c++11
+CFLAGS = -Wall $(INC) -std=c++11 -pthread
 
+# Linker flags
+LIB = -lssl -lcrypto
 #
 # Project files
 #
-SRCS = $(SRC_DIR)/TIN_p2p.cpp
+SRCS = $(SRC_DIR)/TIN_p2p.cpp $(SRC_DIR)/NodeInfo.cpp $(SRC_DIR)/NetMainThread.cpp \
+ $(SRC_DIR)/MessageFrames.cpp $(SRC_DIR)/NetUtils.cpp $(SRC_DIR)/TcpMainService.cpp \
+ $(SRC_DIR)/FilesTableReceive.cpp $(SRC_DIR)/ReceiveFileTcp.cpp $(SRC_DIR)/AddFile.cpp \
+ $(SRC_DIR)/ListFilesRequest.cpp $(SRC_DIR)/FilesTableSend.cpp $(SRC_DIR)/GetFile.cpp \
+ $(SRC_DIR)/SendFileTcp.cpp $(SRC_DIR)/RemoveFileRequest.cpp $(SRC_DIR)/RemoveFile.cpp \
+ $(SRC_DIR)/PrintP2PStats.cpp $(SRC_DIR)/Leave.cpp
 
 #
 # Object files
@@ -40,7 +47,7 @@ RELCFLAGS = -O3 -DNDEBUG
 .PHONY: all clean debug prep release remake
 
 # Default build
-all: prep release
+all: prep debug
 
 #
 # Debug rules
@@ -48,7 +55,7 @@ all: prep release
 debug: $(DBGEXE)
 
 $(DBGEXE): $(DBGOBJS)
-	$(CC) $(CFLAGS) $(DBGCFLAGS) -o $(DBGEXE) $^
+	$(CC) $(CFLAGS) $(DBGCFLAGS) -o $(DBGEXE) $^ $(LIB)
 
 $(DBGDIR)/%.o: %.cpp
 	$(CC) -c $(CFLAGS) $(DBGCFLAGS) -o $@ $<
@@ -59,7 +66,7 @@ $(DBGDIR)/%.o: %.cpp
 release: $(RELEXE)
 
 $(RELEXE): $(RELOBJS)
-	$(CC) $(CFLAGS) $(RELCFLAGS) -o $(RELEXE) $^
+	$(CC) $(CFLAGS) $(RELCFLAGS) -o $(RELEXE) $^ $(LIB)
 
 
 $(RELDIR)/%.o: %.cpp

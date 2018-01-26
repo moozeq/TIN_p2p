@@ -39,3 +39,6 @@
 # Debug/Release directories
 release/
 debug/
+
+# text files
+*.txt
