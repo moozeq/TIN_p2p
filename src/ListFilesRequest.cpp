@@ -13,6 +13,8 @@ void ListFilesRequest::sendInfoMsgUDP(struct in_addr * in_addr)
 
 void ListFilesRequest::execute(void)
 {
+	if (NetMainThread::getNodeInfo() == nullptr)
+		return;
 	//socket
 	if ((commonSocketFd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0){
 		Command::printErrAndDie(this, "socket");

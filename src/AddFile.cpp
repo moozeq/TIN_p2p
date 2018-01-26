@@ -21,6 +21,8 @@ using namespace std;
 
 void AddFile::execute(void)
 {
+	if (NetMainThread::getNodeInfo() == nullptr)
+		return;
 	string fileStr;
 	stringstream ssMD5;
 	ifstream file(param, ios::in | ios::binary);

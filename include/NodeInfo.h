@@ -35,7 +35,7 @@ public:
 	void setNode(size_t nodeId, struct in_addr nodeIP);
 	void removeFiles(size_t ownerId, std::unique_lock<std::mutex>& uLock);
 	void changeFilesOwner(size_t oldOwnerId, size_t newOwnerId);
-	void reconfiguration(size_t newNodeCnt); //when joining new node
+	void reconfiguration(size_t newNodeCnt, struct in_addr newNodeAddr); //when joining new node
 	void reconfiguration(size_t newNodeCnt, size_t leavingNodeId, bool isMe); //when leaving node
 	void setNodeId(size_t _nodeId) {nodeId = _nodeId;}
 	void setNodeCnt(size_t _nodeCnt) {nodeCnt = _nodeCnt;}

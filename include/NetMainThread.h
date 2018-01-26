@@ -25,7 +25,9 @@ public:
 	int init(void);
 	void buildNetwork(void);
 	void setAndSendInfoMsgUDP(InfoMessage * msg, unsigned _port);
+	void setInfoMsgUDP(unsigned timeout, unsigned _port);
 	ssize_t setAndReceiveInfoMsgUDP(unsigned timeout, InfoMessage * msg, unsigned _port);
+	ssize_t receiveInfoMsgUDP(unsigned timeout, InfoMessage * msg, unsigned _port);
 	void sendFile(InfoMessage* msg);
 	void receiveNetworkMessages(void);
 	void parseMsg(InfoMessage * msg);
