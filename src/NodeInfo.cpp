@@ -26,6 +26,7 @@ void NodeInfo::removeFile(std::string hash)
 	// Wait until there is 0 transfers
 	std::get<2>(fInfo)->wait(uLock, [&fInfo]{return std::get<1>(fInfo) == 0;});
 	delete std::get<2>(fInfo);	// free heap memory
+	unlink(it->first.c_str());
 	nodeFiles.erase(it);
 }
 
