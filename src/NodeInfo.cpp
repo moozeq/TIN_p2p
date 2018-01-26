@@ -26,21 +26,20 @@ void NodeInfo::removeFile(std::string hash)
 	// Wait until there is 0 transfers
 	std::get<2>(fInfo)->wait(uLock, [&fInfo]{return std::get<1>(fInfo) == 0;});
 	delete std::get<2>(fInfo);	// free heap memory
+	unlink(it->first.c_str());
 	nodeFiles.erase(it);
 }
 
 void NodeInfo::addNewNode(struct in_addr nodeIP) {
 	std::unique_lock<std::mutex> uLock(nodeMapMtx);
 	nodeMap.insert(std::pair<size_t,struct in_addr>(nodeCnt, nodeIP));
-	std::cout << "Added new node:" << std::endl
-				<< "\tNode ID: " << nodeCnt << std::endl
-				<< "\tNode IP: " << inet_ntoa(nodeIP) << std::endl;
 	++nodeCnt;
 }
 
 void NodeInfo::removeNode(size_t nodeId) {
 	std::unique_lock<std::mutex> uLock(nodeMapMtx);
 	nodeMap.erase(nodeId);
+	--nodeCnt;
 }
 
 struct in_addr NodeInfo::getNodeIP(size_t nodeId) {
@@ -59,6 +58,7 @@ void NodeInfo::setNode(size_t nodeId, struct in_addr nodeIP) { //change node IP 
 	std::map<size_t,struct in_addr>::iterator it = nodeMap.find(nodeId);
 	if (it == nodeMap.end()) {
 		nodeMap.insert(std::pair<size_t,struct in_addr>(nodeId, nodeIP));
+		++nodeCnt;
 		return;
 	}
 	it->second = nodeIP;
@@ -86,7 +86,7 @@ void NodeInfo::changeFilesOwner(size_t newOwnerId, size_t oldOwnerId) {
 
 void NodeInfo::reconfiguration(size_t newNodeCnt, size_t leavingNodeId, bool isMe) {
 	std::unique_lock<std::mutex> uLock(nodeFilesMtx);
-	if (newNodeCnt != --nodeCnt) {
+	if (newNodeCnt != nodeCnt - 1) {
 		std::cout << "Network's corrupted!" << std::endl;
 		return;
 	}
@@ -122,7 +122,8 @@ void NodeInfo::reconfiguration(size_t newNodeCnt, size_t leavingNodeId, bool isM
 	}
 }
 
-void NodeInfo::reconfiguration(size_t newNodeCnt) {
+void NodeInfo::reconfiguration(size_t newNodeCnt, struct in_addr newNodeAddr) {
+	addNewNode(newNodeAddr);
 	std::unique_lock<std::mutex> uLock(nodeFilesMtx);
 	if (newNodeCnt != nodeCnt) { //added node before
 		std::cout << "Network's corrupted!" << std::endl;

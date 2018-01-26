@@ -42,7 +42,7 @@ bool NetUtils::sendInfoMsgUDP(InfoMessage * msg) {
 }
 
 size_t NetUtils::calcNodeId(std::string hash, NodeInfo * nodeInfo) {
-	size_t nodeId;
+	size_t nodeId = 0;
 	for (unsigned i = 0; i < hash.size(); ++i)
 		nodeId += (unsigned)hash[i];
 	return nodeId % nodeInfo->getNodeCnt();

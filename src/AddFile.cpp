@@ -21,19 +21,22 @@ using namespace std;
 
 void AddFile::execute(void)
 {
+	if (NetMainThread::getNodeInfo() == nullptr)
+		return;
 	string fileStr;
 	stringstream ssMD5;
-	ifstream file(param, ios::in | ios::binary);
-	if (!file) {
+	ifstream inFile(param, ios::in | ios::binary);
+	if (!inFile) {
 		cout << "Couldn't open file" << endl;
 		return;
 	}
-	file.seekg(0, ios::end); //how big is file
-	fileStr.reserve(file.tellg());
-	file.seekg(0, ios::beg);
+	inFile.seekg(0, ios::end); //how big is file
+	fileStr.reserve(inFile.tellg());
+	inFile.seekg(0, ios::beg);
 
-	fileStr.assign((istreambuf_iterator<char>(file)), istreambuf_iterator<char>()); //copy file to string
+	fileStr.assign((istreambuf_iterator<char>(inFile)), istreambuf_iterator<char>()); //copy file to string
 
+	inFile.close();
 	unsigned char digest[16];
 	MD5((unsigned char*)fileStr.c_str(), fileStr.size(), (unsigned char*)&digest);
 
@@ -60,10 +63,10 @@ void AddFile::execute(void)
 		size_t ownerId = NetMainThread::getNodeInfo()->getNodeId();
 		 if (nodeInfo->getNodeId() == fileNodeId){ 			//file in this node
 			 std::ofstream file(mdString.c_str(), std::ios::out | std::ios::binary);
-			 	if (!file) {
-			 		std::cout << "Couldn't add new file" << std::endl;
-			 		return;
-			 	}
+			 if (!file) {
+				std::cout << "Couldn't add new file" << std::endl;
+				return;
+			 }
 			 file << fileStr;
 			 file.close();
 			 NetMainThread::getNodeInfo()->addNewFileEntry(mdString, ownerId);
