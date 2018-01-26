@@ -57,7 +57,7 @@ int main(void)
 		{
 			if(command->reqSeparateThread())
 			{
-				if (userCommand == "join")
+				if (userCommand == "join" && NetMainThread::getNodeInfo() == nullptr)
 					pthread_create(&netThread, NULL, Command::commandExeWrapper, static_cast<void *>(command));
 				else {
 					pthread_create(&thread, NULL, Command::commandExeWrapper, static_cast<void *>(command));

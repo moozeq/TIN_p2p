@@ -137,8 +137,9 @@ void NetMainThread::receiveNetworkMessages(void) {
 			}
 			else { //wrong node
 				nodeCnt = nodeInfo->getNodeCnt(); //reset local nodeCnt
-				msg->opcode = 400;
-				NetUtils::sendInfoMsgUDP(msg, commonSocketAddrIn.sin_addr, port);
+				InfoMessage * faultMsg = InfoMessage(400);
+				NetUtils::sendInfoMsgUDP(faultMsg, commonSocketAddrIn.sin_addr, port);
+				delete faultMsg;
 			}
 			break;
 		}
@@ -160,6 +161,7 @@ void NetMainThread::receiveNetworkMessages(void) {
 		}
 		case 400:
 		{
+			std::cout << "Failed when joining to network" << std::endl;
 			pthread_cancel(tcpThread);
 			delete this;
 			exit(1);
@@ -178,6 +180,7 @@ void NetMainThread::buildNetwork(void) {
 }
 
 void NetMainThread::joinNetwork(InfoMessage * msg) {
+	firstNode = false;
 	if (msg->opcode == 102) {
 		nodeInfo = new NodeInfo(msg->thirdField, msg->firstField); //node id, node cnt
 		nodeInfo->setNode(nodeInfo->getNodeId(), NetUtils::getMyIP()); //add current node
@@ -227,7 +230,7 @@ void NetMainThread::execute(void)
 {
 	Command * command;
 
-	if(getNodeInfo() != nullptr && getNodeInfo()->isConnected()){
+	if(nodeInfo != nullptr && nodeInfo->isConnected()){
 		std::cout<<"Already connected to network!\n";
 		pthread_exit(NULL);
 	}
